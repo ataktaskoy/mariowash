@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MarioWash Pro - v26 Ultimate</title>
+    <title>MarioWash Car</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -12,10 +12,7 @@
     <style>
         body { font-family: 'Ubuntu', sans-serif; background-color: #f2edf3; color: #3e4b5b; overflow: hidden; }
         .sidebar { background: #ffffff; width: 260px; min-height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); z-index: 100; transition: 0.3s; }
-        @media (max-width: 1024px) {
-            .sidebar { position: fixed; transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-        }
+        @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
         .nav-link { color: #3e4b5b; padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-link:hover, .nav-active { color: #b66dff; background: #fbfaff; font-weight: 700; border-left: 4px solid #b66dff; }
         .card-orange { background: linear-gradient(to right, #ffbf96, #fe7096); color: white; }
@@ -104,7 +101,6 @@
                 </div>
             </section>
 
-            <!-- Diğer sectionlar (İşlemler, Raporlar vb.) orijinal kodunuzdaki gibi devam eder -->
             <section id="islemler-section" class="hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 bg-white p-8 card-shadow">
@@ -248,7 +244,10 @@
             return val.toString().replace(/[çğıöşüÇĞİÖŞÜ]/g, m => map[m]).toUpperCase();
         };
 
-        const toFloat = (s) => parseFloat(s?.toString().replace(/\./g, "").replace(",", ".")) || 0;
+        const toFloat = (s) => {
+            if (typeof s === 'number') return s;
+            return parseFloat(s?.toString().replace(/\./g, "").replace(",", ".")) || 0;
+        };
 
         const handleLogin = () => {
             const pass = document.getElementById('login-pass').value;
@@ -273,28 +272,18 @@
             renderTransactions(); renderCustomers(); renderExpenses(); renderServices(); renderStats(); renderReports(); lucide.createIcons();
         };
 
-        // GÜNCELLENEN SAĞLAM TARİH KARŞILAŞTIRMA FONKSİYONU (KARTLARIN 0 GÖRÜNMESİNİ ÇÖZER)
+        // GÜVENLİ TARİH KARŞILAŞTIRMA (BUGÜN VE AY ANALİZİ İÇİN)
+        const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+
         const renderStats = () => {
             if(currentUser !== 'ADMIN') return;
             const trs = Object.values(localData.transactions || {});
             const exs = Object.values(localData.expenses || {});
-            
             const now = new Date();
-            const todayStr = now.getFullYear() + "-" + (now.getMonth()+1) + "-" + now.getDate();
 
-            const isToday = (dateStr) => {
-                const d = new Date(dateStr);
-                return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate() === todayStr;
-            };
-
-            const isThisMonth = (dateStr) => {
-                const d = new Date(dateStr);
-                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-            };
-
-            const dRev = trs.filter(t => isToday(t.date)).reduce((s,t) => s + (parseFloat(t.price) || 0), 0);
-            const dEx = exs.filter(e => isToday(e.date)).reduce((s,e) => s + (parseFloat(e.amount) || 0), 0);
-            const mRev = trs.filter(t => isThisMonth(t.date)).reduce((s,t) => s + (parseFloat(t.price) || 0), 0);
+            const dRev = trs.filter(t => isSameDay(new Date(t.date), now)).reduce((s,t) => s + toFloat(t.price), 0);
+            const dEx = exs.filter(e => isSameDay(new Date(e.date), now)).reduce((s,e) => s + toFloat(e.amount), 0);
+            const mRev = trs.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear()).reduce((s,t) => s + toFloat(t.price), 0);
             
             const goal = toFloat(localData.settings?.goal || 0);
             const fixed = toFloat(localData.settings?.fixed || 0);
@@ -317,7 +306,7 @@
                     <td class="p-4 font-bold text-[#b66dff]">${t.plate}</td>
                     <td class="p-4 text-[11px] font-bold text-gray-600">${t.brand} ${t.model}</td>
                     <td class="p-4"><span class="bg-purple-100 text-[#b66dff] text-[10px] px-2 py-1 rounded font-bold uppercase">${t.serviceName}</span></td>
-                    <td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td>
+                    <td class="p-4 text-right font-bold">₺${toFloat(t.price).toLocaleString()}</td>
                     <td class="p-4 text-center">
                         <button onclick="editTr('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
                         <button onclick="deleteItem('transactions', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -327,21 +316,24 @@
         };
 
         const renderReports = () => {
-            const dateStr = new Date(document.getElementById('report-date').value).toLocaleDateString();
-            const trs = Object.values(localData.transactions || {}).filter(t => new Date(t.date).toLocaleDateString() === dateStr);
-            const exs = Object.values(localData.expenses || {}).filter(e => new Date(e.date).toLocaleDateString() === dateStr);
-            const totalRev = trs.reduce((s,t) => s + t.price, 0);
-            const totalEx = exs.reduce((s,e) => s + e.amount, 0);
+            const reportDate = new Date(document.getElementById('report-date').value);
+            const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), reportDate));
+            const exs = Object.values(localData.expenses || {}).filter(e => isSameDay(new Date(e.date), reportDate));
+            
+            const totalRev = trs.reduce((s,t) => s + toFloat(t.price), 0);
+            const totalEx = exs.reduce((s,e) => s + toFloat(e.amount), 0);
+            
             document.getElementById('rep-total-rev').innerText = `₺${totalRev.toLocaleString()}`;
             document.getElementById('rep-total-ex').innerText = `₺${totalEx.toLocaleString()}`;
             document.getElementById('rep-total-net').innerText = `₺${(totalRev - totalEx).toLocaleString()}`;
+            
             document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `
                 <tr class="border-b border-gray-50">
                     <td class="p-4 text-[10px] text-gray-400">${new Date(t.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
                     <td class="p-4 font-bold text-[#b66dff]">${t.plate}</td>
                     <td class="p-4 text-[11px]">${t.brand} ${t.model}</td>
                     <td class="p-4 text-[10px] uppercase font-bold text-gray-400">${t.serviceName}</td>
-                    <td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td>
+                    <td class="p-4 text-right font-bold">₺${toFloat(t.price).toLocaleString()}</td>
                 </tr>
             `).join('');
         };
@@ -350,8 +342,12 @@
             const trs = Object.values(localData.transactions || {});
             const search = normalize(document.getElementById('search-cust').value);
             const clients = {};
+            // Plakaya göre en son işlemi bulup müşteri listesini oluşturuyoruz
             trs.forEach(t => { if(!clients[t.plate]) clients[t.plate] = t; });
-            document.getElementById('table-customers').innerHTML = Object.values(clients).filter(c => c.plate.includes(search) || normalize(c.name).includes(search)).map(c => `
+            
+            const filtered = Object.values(clients).filter(c => c.plate.includes(search) || normalize(c.name).includes(search));
+            
+            document.getElementById('table-customers').innerHTML = filtered.map(c => `
                 <tr class="border-b border-gray-50">
                     <td class="p-4 font-bold text-[#b66dff]">${c.plate}</td>
                     <td class="p-4 font-bold uppercase text-gray-700">${c.name || '-'}</td>
@@ -368,7 +364,7 @@
                 <tr class="border-b border-gray-50">
                     <td class="p-4 text-[10px] text-gray-400 font-bold">${new Date(e.date).toLocaleDateString()}</td>
                     <td class="p-4 uppercase font-bold text-gray-600">${e.desc}</td>
-                    <td class="p-4 text-right font-bold text-red-400">₺${e.amount.toLocaleString()}</td>
+                    <td class="p-4 text-right font-bold text-red-400">₺${toFloat(e.amount).toLocaleString()}</td>
                     <td class="p-4 text-center">
                         <button onclick="editEx('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
                         <button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -387,7 +383,7 @@
             `).join('');
             document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
                 <div class="flex justify-between p-4 bg-gray-50 rounded border text-sm uppercase">
-                    <span>${s.name} - <b>₺${s.price.toLocaleString()}</b></span>
+                    <span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span>
                     <div class="flex gap-3"><button onclick="editService('${id}')" class="text-blue-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button><button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
                 </div>
             `).join('');
@@ -405,15 +401,14 @@
             refresh();
         };
 
-        // Diğer form submit, delete, edit fonksiyonları orijinal kodunuzdaki ile aynıdır
         document.getElementById('form-transaction').onsubmit = e => { e.preventDefault(); const selectedSrvs = Array.from(document.querySelectorAll('.srv-checkbox:checked')); if(selectedSrvs.length === 0) { alert("Paket seçin!"); return; } const data = { plate: normalize(document.getElementById('tr-plate').value), name: normalize(document.getElementById('tr-name').value), phone: document.getElementById('tr-phone').value, brand: document.getElementById('tr-brand').value, model: normalize(document.getElementById('tr-model').value), serviceName: selectedSrvs.map(s => s.dataset.name).join(", "), price: selectedSrvs.reduce((sum, s) => sum + parseFloat(s.dataset.price), 0), date: new Date().toISOString() }; const id = document.getElementById('tr-id').value; if(id) db.ref('transactions/' + id).set(data); else db.ref('transactions').push(data); e.target.reset(); document.getElementById('tr-id').value = ""; document.getElementById('tr-price-display').innerText = "₺0"; showSection('panel'); };
         document.getElementById('form-expense').onsubmit = e => { e.preventDefault(); const data = { amount: toFloat(document.getElementById('ex-amount').value), desc: normalize(document.getElementById('ex-desc').value), date: new Date().toISOString() }; const id = document.getElementById('ex-id').value; if(id) db.ref('expenses/' + id).set(data); else db.ref('expenses').push(data); e.target.reset(); document.getElementById('ex-id').value = ""; document.getElementById('btn-ex-save').innerText = "KAYDET"; };
         document.getElementById('form-service').onsubmit = e => { e.preventDefault(); const id = document.getElementById('srv-id').value; const data = { name: normalize(document.getElementById('srv-name').value), price: toFloat(document.getElementById('srv-price').value) }; if(id) db.ref('services/' + id).set(data); else db.ref('services').push(data); e.target.reset(); document.getElementById('srv-id').value = ""; document.getElementById('btn-srv-save').innerText = "+"; };
         const saveSets = () => db.ref('settings').set({ goal: document.getElementById('set-goal').value, fixed: document.getElementById('set-fixed').value });
         const deleteItem = (path, id) => { if(confirm("Silmek istediğine emin misin?")) db.ref(`${path}/${id}`).remove(); };
         const editTr = (id) => { const t = localData.transactions[id]; showSection('islemler'); document.getElementById('tr-id').value = id; document.getElementById('tr-plate').value = t.plate; document.getElementById('tr-name').value = t.name; document.getElementById('tr-phone').value = t.phone; document.getElementById('tr-brand').value = t.brand; updateModels(t.brand); setTimeout(() => { document.getElementById('tr-model').value = t.model; document.querySelectorAll('.srv-checkbox').forEach(cb => cb.checked = t.serviceName.includes(cb.dataset.name)); updateTrPrice(); }, 100); };
-        const editEx = (id) => { const e = localData.expenses[id]; document.getElementById('ex-id').value = id; document.getElementById('ex-amount').value = e.amount.toLocaleString(); document.getElementById('ex-desc').value = e.desc; document.getElementById('btn-ex-save').innerText = "GÜNCELLE"; };
-        const editService = (id) => { const s = localData.services[id]; document.getElementById('srv-id').value = id; document.getElementById('srv-name').value = s.name; document.getElementById('srv-price').value = s.price.toLocaleString(); document.getElementById('btn-srv-save').innerText = "✓"; };
+        const editEx = (id) => { const e = localData.expenses[id]; document.getElementById('ex-id').value = id; document.getElementById('ex-amount').value = toFloat(e.amount).toLocaleString(); document.getElementById('ex-desc').value = e.desc; document.getElementById('btn-ex-save').innerText = "GÜNCELLE"; };
+        const editService = (id) => { const s = localData.services[id]; document.getElementById('srv-id').value = id; document.getElementById('srv-name').value = s.name; document.getElementById('srv-price').value = toFloat(s.price).toLocaleString(); document.getElementById('btn-srv-save').innerText = "✓"; };
         const loadClient = (plate) => { const c = Object.values(localData.transactions).reverse().find(t => t.plate === plate); showSection('islemler'); document.getElementById('tr-plate').value = c.plate; document.getElementById('tr-name').value = c.name; document.getElementById('tr-phone').value = c.phone; document.getElementById('tr-brand').value = c.brand; updateModels(c.brand); };
         const updateModels = (b) => { const container = document.getElementById('model-container'); if(b === "DIGER") container.innerHTML = '<input type="text" id="tr-model" placeholder="MODEL YAZIN">'; else container.innerHTML = `<select id="tr-model">${(VEHICLES[b] || []).map(m => `<option value="${m}">${m}</option>`).join('')}</select>`; };
         const searchCRM = (plate) => { const p = normalize(plate); if(p.length < 3) return; const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); if(history.length > 0) { document.getElementById('tr-name').value = history[0].name; document.getElementById('tr-phone').value = history[0].phone; document.getElementById('crm-history').innerHTML = history.slice(0,3).map(h => `<div class="p-3 bg-gray-50 rounded mb-2 border-l-4 border-purple-400 text-[10px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); } };
