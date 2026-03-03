@@ -10,10 +10,20 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #f2edf3; font-family: 'Ubuntu', sans-serif; color: #3e4b5b; }
+        html, body { height: 100dvh; margin: 0; padding: 0; overflow: hidden; background-color: #f2edf3; font-family: 'Ubuntu', sans-serif; color: #3e4b5b; }
         .sidebar { background: #ffffff; width: 260px; height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); z-index: 100; transition: 0.3s; flex-shrink: 0; }
         @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); left: 0; top: 0; } .sidebar.open { transform: translateX(0); } }
-        #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f2edf3; height: calc(100vh - 64px); }
+        
+        /* Mobil Alt Kısım Görünmeme Sorunu İçin Düzenleme */
+        #main-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+            background: #f2edf3; 
+            height: calc(100dvh - 64px); 
+            padding-bottom: 100px; /* Telefonun alt barı için boşluk */
+        }
+        
         .nav-link { color: #3e4b5b; padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-link:hover, .nav-active { color: #b66dff; background: #fbfaff; font-weight: 700; border-left: 4px solid #b66dff; }
         .card-orange { background: linear-gradient(to right, #ffbf96, #fe7096); color: white; }
@@ -347,7 +357,8 @@
 
         const renderServices = () => {
             const srvs = Object.entries(localData.services || {});
-            document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `<div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>`).join('');
+            // Checkboxlara hem onchange hem onclick ekleyerek mobil gecikmesini önledik
+            document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `<div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()" onclick="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>`).join('');
             document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
                 <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase">
                     <span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span>
@@ -391,7 +402,7 @@
             e.preventDefault(); const selected = Array.from(document.querySelectorAll('.srv-checkbox:checked')); if(!selected.length) return alert("Hizmet seç!");
             const data = { plate: normalize(document.getElementById('tr-plate').value), name: normalize(document.getElementById('tr-name').value), phone: document.getElementById('tr-phone').value, brand: document.getElementById('tr-brand').value, model: normalize(document.getElementById('tr-model').value), serviceName: selected.map(s => s.dataset.name).join(", "), price: selected.reduce((s,v) => s + toFloat(v.dataset.price), 0), waNotify: document.getElementById('tr-wa-notify').checked, date: new Date().toISOString() };
             const id = document.getElementById('tr-id').value; if(id) db.ref('transactions/' + id).set(data); else db.ref('transactions').push(data);
-            e.target.reset(); document.getElementById('tr-id').value = ""; document.getElementById('btn-tr-save').innerText = "İŞLEMİ KAYDET"; showSection('panel');
+            e.target.reset(); document.getElementById('tr-id').value = ""; document.getElementById('btn-tr-save').innerText = "İŞLEMİ KAYDET"; updateTrPrice(); showSection('panel');
         };
 
         document.getElementById('form-expense').onsubmit = e => { 
