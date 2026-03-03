@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MarioWash Pro - v34 Ultimate</title>
+    <title>MarioWash Pro - v35 Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -12,9 +12,9 @@
     <style>
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #f2edf3; font-family: 'Ubuntu', sans-serif; color: #3e4b5b; }
         .sidebar { background: #ffffff; width: 260px; height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); z-index: 100; transition: 0.3s; flex-shrink: 0; }
-        @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
+        @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); left: 0; top: 0; } .sidebar.open { transform: translateX(0); } }
         
-        #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f2edf3; }
+        #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f2edf3; height: calc(100vh - 64px); }
         .nav-link { color: #3e4b5b; padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-link:hover, .nav-active { color: #b66dff; background: #fbfaff; font-weight: 700; border-left: 4px solid #b66dff; }
         
@@ -26,10 +26,9 @@
         input, select, textarea { border: 1px solid #ebedf2 !important; border-radius: 6px !important; padding: 10px !important; width: 100%; outline: none; text-transform: uppercase; font-size: 0.85rem; }
         .btn-purple { background: linear-gradient(to right, #da8cff, #9a55ff); color: white; font-weight: 700; padding: 12px; border-radius: 6px; cursor: pointer; border: none; width: 100%; }
         
-        /* PROFESYONEL HİZMET SEÇİM BUTONLARI */
         .srv-checkbox { display: none; }
         .srv-label { display: block; padding: 12px 8px; border: 1px solid #ebedf2; border-radius: 8px; cursor: pointer; font-size: 10px; font-weight: bold; text-align: center; text-transform: uppercase; transition: 0.2s; background: white; height: 100%; display: flex; align-items: center; justify-content: center; color: #8e94a9; }
-        .srv-checkbox:checked + .srv-label { background: #b66dff; color: white; border-color: #b66dff; shadow: 0 4px 10px rgba(182, 109, 255, 0.3); }
+        .srv-checkbox:checked + .srv-label { background: #b66dff; color: white; border-color: #b66dff; box-shadow: 0 4px 10px rgba(182, 109, 255, 0.3); }
 
         #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; display: none; }
         #sidebar-overlay.show { display: block; }
@@ -43,12 +42,14 @@
 </head>
 <body class="flex">
 
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <!-- Müşteri Geçmiş Modal -->
     <div id="customer-modal" onclick="closeCustomerModal()">
         <div class="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" onclick="event.stopPropagation()">
             <div class="p-6 border-b flex justify-between items-center bg-gray-50">
                 <div><h2 id="modal-customer-plate" class="text-2xl font-bold text-[#b66dff]"></h2><p id="modal-customer-info" class="text-[10px] text-gray-400 font-bold uppercase"></p></div>
-                <button onclick="closeCustomerModal()" class="text-gray-400"><i data-lucide="x"></i></button>
+                <button onclick="closeCustomerModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
             </div>
             <div class="flex-1 overflow-y-auto p-6">
                 <table class="w-full text-left text-sm">
@@ -59,9 +60,8 @@
         </div>
     </div>
 
-    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-    <aside id="app-sidebar" class="sidebar hidden lg:flex flex-col">
+    <!-- SIDEBAR -->
+    <aside id="app-sidebar" class="sidebar lg:flex flex-col">
         <div class="p-8 text-2xl font-bold text-[#b66dff] italic flex items-center justify-between">
             <div class="flex items-center gap-2"><i data-lucide="droplets"></i> MarioWash</div>
             <button onclick="toggleSidebar()" class="lg:hidden"><i data-lucide="x"></i></button>
@@ -79,7 +79,9 @@
     <main id="app-shell" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
         <header class="h-16 bg-white flex items-center justify-between px-4 lg:px-8 shadow-sm shrink-0">
             <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-[#b66dff]"><i data-lucide="menu"></i></button>
+                <button id="menu-toggle-btn" onclick="toggleSidebar()" class="lg:hidden p-2 text-[#b66dff] hover:bg-purple-50 rounded-lg">
+                    <i data-lucide="menu"></i>
+                </button>
                 <div class="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-3">
                     <span id="live-clock">00:00</span>
                     <span class="text-[#b66dff]" id="header-weather">YÜKLENİYOR...</span>
@@ -188,7 +190,8 @@
                         <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Finansal Hedefler</h3>
                         <div class="space-y-4">
                             <div><label class="text-[10px] font-bold text-gray-400 uppercase">Aylık Ciro Hedefi</label><input type="text" id="set-goal" class="currency-mask" onchange="saveSets()"></div>
-                            <div><label class="text-[10px] font-bold text-gray-400 uppercase">Sabit Gider (Kira, Maaş vb.)</label><input type="text" id="set-fixed" class="currency-mask" onchange="saveSets()"></div>
+                            <div><label class="text-[10px] font-bold text-gray-400 uppercase">Sabit Gider (Aylık Toplam)</label><input type="text" id="set-fixed" class="currency-mask" onchange="saveSets()"></div>
+                            <p class="text-[9px] text-gray-400 italic">* Sabit giderler günlük kâr hesabında 26 güne bölünerek düşülür.</p>
                         </div>
                     </div>
                 </div>
@@ -252,14 +255,54 @@
         const toFloat = (s) => (typeof s === 'number') ? s : parseFloat(s?.toString().replace(/\./g, "").replace(",", ".")) || 0;
         const normalize = (val) => val?.toString().replace(/[çğıöşüÇĞİÖŞÜ]/g, m => ({'ç':'C','ğ':'G','ı':'I','ö':'O','ş':'S','ü':'U','Ç':'C','Ğ':'G','İ':'I','Ö':'O','Ş':'S','Ü':'U'})[m]).toUpperCase() || "";
 
+        const toggleSidebar = () => {
+            const sb = document.getElementById('app-sidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            sb.classList.toggle('open');
+            ov.classList.toggle('show');
+        };
+
         const showSection = (id) => {
             document.querySelectorAll('section').forEach(s => s.classList.remove('active-section'));
             document.getElementById(id + '-section').classList.add('active-section');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('nav-active'));
             const nav = document.getElementById('nav-' + id);
             if(nav) nav.classList.add('nav-active');
-            if(window.innerWidth < 1024) toggleSidebar();
+            
+            // Mobilde menüyü kapat
+            if(window.innerWidth < 1024) {
+                document.getElementById('app-sidebar').classList.remove('open');
+                document.getElementById('sidebar-overlay').classList.remove('show');
+            }
             refresh();
+        };
+
+        const renderStats = () => {
+            if(currentUser !== 'ADMIN') return;
+            const trs = Object.values(localData.transactions || {});
+            const exs = Object.values(localData.expenses || {});
+            const now = new Date();
+            
+            const dRev = trs.filter(t => isSameDay(new Date(t.date), now)).reduce((s,t) => s + toFloat(t.price), 0);
+            const dEx = exs.filter(e => isSameDay(new Date(e.date), now)).reduce((s,e) => s + toFloat(e.amount), 0);
+            const mRev = trs.filter(t => new Date(t.date).getMonth() === now.getMonth()).reduce((s,t) => s + toFloat(t.price), 0);
+            
+            const fixed = toFloat(localData.settings?.fixed || 0);
+            const dailyFixed = fixed / 26;
+            
+            document.getElementById('stat-net-profit').innerText = `₺${Math.round(dRev - dEx - dailyFixed).toLocaleString()}`;
+            document.getElementById('stat-daily-rev').innerText = `₺${dRev.toLocaleString()}`;
+            document.getElementById('stat-monthly-rev').innerText = `₺${mRev.toLocaleString()}`;
+            
+            document.getElementById('set-goal').value = localData.settings?.goal || "";
+            document.getElementById('set-fixed').value = localData.settings?.fixed || "";
+        };
+
+        const saveSets = () => {
+            db.ref('settings').set({
+                goal: document.getElementById('set-goal').value,
+                fixed: document.getElementById('set-fixed').value
+            });
         };
 
         const renderTransactions = () => {
@@ -280,6 +323,7 @@
                     </td>
                 </tr>
             `).join('');
+            lucide.createIcons();
         };
 
         const renderCustomers = () => {
@@ -298,6 +342,7 @@
                     </td>
                 </tr>
             `).join('');
+            lucide.createIcons();
         };
 
         const renderExpenses = () => {
@@ -315,6 +360,7 @@
                     </td>
                 </tr>
             `).join('');
+            lucide.createIcons();
         };
 
         const renderServices = () => {
@@ -331,34 +377,7 @@
                     </div>
                 </div>
             `).join('');
-        };
-
-        const renderStats = () => {
-            if(currentUser !== 'ADMIN') return;
-            const trs = Object.values(localData.transactions || {});
-            const exs = Object.values(localData.expenses || {});
-            const now = new Date();
-            const dRev = trs.filter(t => isSameDay(new Date(t.date), now)).reduce((s,t) => s + toFloat(t.price), 0);
-            const dEx = exs.filter(e => isSameDay(new Date(e.date), now)).reduce((s,e) => s + toFloat(e.amount), 0);
-            const mRev = trs.filter(t => new Date(t.date).getMonth() === now.getMonth()).reduce((s,t) => s + toFloat(t.price), 0);
-            document.getElementById('stat-net-profit').innerText = `₺${Math.round(dRev - dEx).toLocaleString()}`;
-            document.getElementById('stat-daily-rev').innerText = `₺${dRev.toLocaleString()}`;
-            document.getElementById('stat-monthly-rev').innerText = `₺${mRev.toLocaleString()}`;
-            document.getElementById('set-goal').value = localData.settings?.goal || "";
-            document.getElementById('set-fixed').value = localData.settings?.fixed || "";
-        };
-
-        const saveSets = () => db.ref('settings').set({ goal: document.getElementById('set-goal').value, fixed: document.getElementById('set-fixed').value });
-
-        const renderReports = () => {
-            const date = new Date(document.getElementById('report-date').value);
-            const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date));
-            const exs = Object.values(localData.expenses || {}).filter(e => isSameDay(new Date(e.date), date));
-            const rev = trs.reduce((s,t) => s + toFloat(t.price), 0);
-            const ex = exs.reduce((s,e) => s + toFloat(e.amount), 0);
-            document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`;
-            document.getElementById('rep-total-net').innerText = `₺${(rev-ex).toLocaleString()}`;
-            document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join('');
+            lucide.createIcons();
         };
 
         const editTr = (id) => {
@@ -392,11 +411,6 @@
             document.getElementById('srv-name').value = s.name;
             document.getElementById('srv-price').value = toFloat(s.price).toLocaleString();
             document.getElementById('btn-srv-save').innerText = "GÜNCELLE";
-        };
-
-        const loadCustToForm = (plate) => {
-            const t = Object.values(localData.transactions).reverse().find(x => x.plate === plate);
-            if(t) editTr(Object.keys(localData.transactions).find(key => localData.transactions[key] === t));
         };
 
         const openCustomerModal = (plate) => {
@@ -466,11 +480,12 @@
         };
 
         const deleteItem = (path, id) => { if(confirm("Silmek istediğine emin misin?")) db.ref(`${path}/${id}`).remove(); };
-        const toggleSidebar = () => { document.getElementById('app-sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('show'); };
         const startClock = () => setInterval(() => document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}), 1000);
         const updateTrPrice = () => { const total = Array.from(document.querySelectorAll('.srv-checkbox:checked')).reduce((s,v) => s + toFloat(v.dataset.price), 0); document.getElementById('tr-price-display').innerText = `₺${total.toLocaleString()}`; };
         const updateModels = (b) => { const container = document.getElementById('model-container'); if(b === "DIGER") container.innerHTML = '<input type="text" id="tr-model" placeholder="MODEL YAZIN">'; else container.innerHTML = `<select id="tr-model">${(VEHICLES[b] || []).map(m => `<option value="${m}">${m}</option>`).join('')}</select>`; };
         const searchCRM = (plate) => { const p = normalize(plate); if(p.length < 3) return; const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); if(history.length > 0) { document.getElementById('tr-name').value = history[0].name; document.getElementById('tr-phone').value = history[0].phone; document.getElementById('crm-history').innerHTML = history.slice(0,2).map(h => `<div class="p-2 bg-gray-50 rounded mb-1 border-l-4 border-purple-400 text-[9px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); } };
+        const loadCustToForm = (plate) => { const t = Object.values(localData.transactions).reverse().find(x => x.plate === plate); if(t) editTr(Object.keys(localData.transactions).find(key => localData.transactions[key] === t)); };
+        const renderReports = () => { const date = new Date(document.getElementById('report-date').value); const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date)); const exs = Object.values(localData.expenses || {}).filter(e => isSameDay(new Date(e.date), date)); const rev = trs.reduce((s,t) => s + toFloat(t.price), 0); const ex = exs.reduce((s,e) => s + toFloat(e.amount), 0); document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`; document.getElementById('rep-total-net').innerText = `₺${(rev-ex).toLocaleString()}`; document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join(''); };
 
         document.addEventListener('input', e => {
             if(e.target.classList.contains('currency-mask')) e.target.value = new Intl.NumberFormat('tr-TR').format(e.target.value.replace(/\D/g, ""));
