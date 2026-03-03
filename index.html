@@ -13,29 +13,22 @@
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #f2edf3; font-family: 'Ubuntu', sans-serif; color: #3e4b5b; }
         .sidebar { background: #ffffff; width: 260px; height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); z-index: 100; transition: 0.3s; flex-shrink: 0; }
         @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); left: 0; top: 0; } .sidebar.open { transform: translateX(0); } }
-        
         #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f2edf3; height: calc(100vh - 64px); }
         .nav-link { color: #3e4b5b; padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-link:hover, .nav-active { color: #b66dff; background: #fbfaff; font-weight: 700; border-left: 4px solid #b66dff; }
-        
         .card-orange { background: linear-gradient(to right, #ffbf96, #fe7096); color: white; }
         .card-blue { background: linear-gradient(to right, #90caf9, #047edf); color: white; }
         .card-green { background: linear-gradient(to right, #84d9d2, #07cdae); color: white; }
         .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 8px; }
-        
         input, select, textarea { border: 1px solid #ebedf2 !important; border-radius: 6px !important; padding: 10px !important; width: 100%; outline: none; text-transform: uppercase; font-size: 0.85rem; }
         .btn-purple { background: linear-gradient(to right, #da8cff, #9a55ff); color: white; font-weight: 700; padding: 12px; border-radius: 6px; cursor: pointer; border: none; width: 100%; }
-        
         .srv-checkbox { display: none; }
         .srv-label { display: block; padding: 12px 8px; border: 1px solid #ebedf2; border-radius: 8px; cursor: pointer; font-size: 10px; font-weight: bold; text-align: center; text-transform: uppercase; transition: 0.2s; background: white; height: 100%; display: flex; align-items: center; justify-content: center; color: #8e94a9; }
         .srv-checkbox:checked + .srv-label { background: #b66dff; color: white; border-color: #b66dff; box-shadow: 0 4px 10px rgba(182, 109, 255, 0.3); }
-
         #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; display: none; }
         #sidebar-overlay.show { display: block; }
-        
         #customer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
         #customer-modal.show { display: flex; }
-        
         section { display: none; }
         section.active-section { display: block !important; }
     </style>
@@ -44,7 +37,6 @@
 
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-    <!-- Müşteri Geçmiş Modal -->
     <div id="customer-modal" onclick="closeCustomerModal()">
         <div class="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" onclick="event.stopPropagation()">
             <div class="p-6 border-b flex justify-between items-center bg-gray-50">
@@ -60,7 +52,6 @@
         </div>
     </div>
 
-    <!-- SIDEBAR -->
     <aside id="app-sidebar" class="sidebar lg:flex flex-col">
         <div class="p-8 text-2xl font-bold text-[#b66dff] italic flex items-center justify-between">
             <div class="flex items-center gap-2"><i data-lucide="droplets"></i> MarioWash</div>
@@ -79,9 +70,7 @@
     <main id="app-shell" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
         <header class="h-16 bg-white flex items-center justify-between px-4 lg:px-8 shadow-sm shrink-0">
             <div class="flex items-center gap-4">
-                <button id="menu-toggle-btn" onclick="toggleSidebar()" class="lg:hidden p-2 text-[#b66dff] hover:bg-purple-50 rounded-lg">
-                    <i data-lucide="menu"></i>
-                </button>
+                <button id="menu-toggle-btn" onclick="toggleSidebar()" class="lg:hidden p-2 text-[#b66dff] hover:bg-purple-50 rounded-lg"><i data-lucide="menu"></i></button>
                 <div class="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-3">
                     <span id="live-clock">00:00</span>
                     <span class="text-[#b66dff]" id="header-weather">YÜKLENİYOR...</span>
@@ -91,32 +80,25 @@
         </header>
 
         <div id="main-content">
-            
-            <!-- PANEL -->
             <section id="panel-section" class="p-4 lg:p-6 max-w-6xl mx-auto active-section">
                 <div id="admin-stats" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div class="card-orange p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Net Kâr (Günlük)</p><h3 id="stat-net-profit" class="text-xl font-bold">₺0</h3></div>
                     <div class="card-blue p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Bugün Ciro</p><h3 id="stat-daily-rev" class="text-lg font-bold">₺0</h3></div>
                     <div class="card-green p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Aylık Ciro</p><h3 id="stat-monthly-rev" class="text-lg font-bold">₺0</h3></div>
                 </div>
-
                 <div class="bg-white p-5 card-shadow mb-6 border-l-4 border-[#b66dff]">
                     <div class="flex items-center gap-2 mb-4 text-[#b66dff]"><i data-lucide="calendar-clock" class="w-4 h-4"></i><h3 class="text-[10px] font-bold uppercase tracking-widest">AI Operasyonel Saatlik Plan</h3></div>
                     <div id="ai-hourly-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
                 </div>
-
                 <div class="bg-white card-shadow overflow-x-auto">
                     <div class="p-4 border-b flex justify-between items-center min-w-[600px]"><h3 class="font-bold text-xs uppercase text-gray-400">Son İşlemler</h3><input type="text" id="search-tx" class="!w-48 !p-2 text-xs" placeholder="PLAKA ARA..." oninput="renderTransactions()"></div>
                     <table class="w-full text-left text-sm min-w-[600px]">
-                        <thead class="bg-gray-50 text-gray-400 text-[10px] uppercase">
-                            <tr><th class="p-4">Saat</th><th class="p-4">Plaka</th><th class="p-4">Araç</th><th class="p-4">Hizmet</th><th class="p-4 text-right">Tutar</th><th class="p-4 text-center">İşlem</th></tr>
-                        </thead>
+                        <thead class="bg-gray-50 text-gray-400 text-[10px] uppercase"><tr><th class="p-4">Saat</th><th class="p-4">Plaka</th><th class="p-4">Araç</th><th class="p-4">Hizmet</th><th class="p-4 text-right">Tutar</th><th class="p-4 text-center">İşlem</th></tr></thead>
                         <tbody id="table-transactions"></tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- İŞLEMLER -->
             <section id="islemler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white p-8 card-shadow">
@@ -132,6 +114,10 @@
                                 <label class="text-[10px] font-bold text-gray-400 uppercase mb-3 block tracking-widest">Hizmet Paketleri</label>
                                 <div id="tr-services-list" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
                             </div>
+                            <div class="md:col-span-2 flex items-center gap-2 mt-2">
+                                <input type="checkbox" id="tr-wa-notify" class="w-4 h-4 cursor-pointer" checked>
+                                <label for="tr-wa-notify" class="text-[10px] font-bold text-gray-500 uppercase cursor-pointer">WhatsApp ile Bilgilendir</label>
+                            </div>
                             <div class="md:col-span-2 bg-purple-50 p-5 rounded-xl flex justify-between items-center mt-4">
                                 <span class="font-bold text-gray-400 text-xs uppercase">Tahsilat Tutarı</span>
                                 <span id="tr-price-display" class="text-3xl font-bold text-[#b66dff]">₺0</span>
@@ -139,14 +125,10 @@
                             <button type="submit" id="btn-tr-save" class="md:col-span-2 btn-purple uppercase mt-4">İşlemi Kaydet</button>
                         </form>
                     </div>
-                    <div class="bg-white p-5 card-shadow h-fit">
-                        <h3 class="font-bold text-xs uppercase text-gray-400 mb-4">Hızlı CRM</h3>
-                        <div id="crm-history" class="space-y-3 text-xs text-gray-400 italic">...</div>
-                    </div>
+                    <div class="bg-white p-5 card-shadow h-fit"><h3 class="font-bold text-xs uppercase text-gray-400 mb-4">Hızlı CRM</h3><div id="crm-history" class="space-y-3 text-xs text-gray-400 italic">...</div></div>
                 </div>
             </section>
 
-            <!-- MÜŞTERİLER -->
             <section id="musteriler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="bg-white card-shadow overflow-x-auto">
                     <div class="p-4 border-b flex justify-between items-center min-w-[600px]"><h3 class="font-bold text-xs uppercase text-gray-400">Müşteriler</h3><input type="text" id="search-cust" class="!w-64 !p-2" placeholder="ARA..." oninput="renderCustomers()"></div>
@@ -157,7 +139,6 @@
                 </div>
             </section>
 
-            <!-- RAPORLAR -->
             <section id="raporlar-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="bg-white p-5 card-shadow mb-6 flex justify-between items-center">
                     <input type="date" id="report-date" class="!w-40" onchange="renderReports()">
@@ -166,19 +147,15 @@
                 <div class="bg-white card-shadow overflow-x-auto"><table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-reports"></tbody></table></div>
             </section>
 
-            <!-- GİDERLER -->
             <section id="giderler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 card-shadow h-fit">
-                        <form id="form-expense" class="space-y-4">
-                            <input type="hidden" id="ex-id"><input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required><textarea id="ex-desc" placeholder="Açıklama..."></textarea><button type="submit" id="btn-ex-save" class="btn-purple text-xs uppercase">Kaydet</button>
-                        </form>
+                        <form id="form-expense" class="space-y-4"><input type="hidden" id="ex-id"><input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required><textarea id="ex-desc" placeholder="Açıklama..."></textarea><button type="submit" id="btn-ex-save" class="btn-purple text-xs uppercase">Kaydet</button></form>
                     </div>
                     <div class="md:col-span-2 bg-white card-shadow overflow-x-auto"><table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-expenses"></tbody></table></div>
                 </div>
             </section>
 
-            <!-- AYARLAR -->
             <section id="ayarlar-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-6 card-shadow">
@@ -191,12 +168,10 @@
                         <div class="space-y-4">
                             <div><label class="text-[10px] font-bold text-gray-400 uppercase">Aylık Ciro Hedefi</label><input type="text" id="set-goal" class="currency-mask" onchange="saveSets()"></div>
                             <div><label class="text-[10px] font-bold text-gray-400 uppercase">Sabit Gider (Aylık Toplam)</label><input type="text" id="set-fixed" class="currency-mask" onchange="saveSets()"></div>
-                            <p class="text-[9px] text-gray-400 italic">* Sabit giderler günlük kâr hesabında 26 güne bölünerek düşülür.</p>
                         </div>
                     </div>
                 </div>
             </section>
-
         </div>
     </main>
 
@@ -222,7 +197,6 @@
         const db = firebase.database();
 
         const VEHICLES = { "BMW": ["1 SERISI","2 SERISI","3 SERISI","4 SERISI","5 SERISI","6 SERISI","7 SERISI","8 SERISI","X1","X2","X3","X4","X5","X6","X7","Z4","I3","I4","I5","IX","M SERISI"], "MERCEDES": ["A SERISI","B SERISI","C SERISI","E SERISI","S SERISI","CLA","CLS","CLK","SLK","GLA","GLB","GLC","GLE","GLS","G SERISI","VITO","V SERISI","SPRINTER","CITAN","EQE","EQS"], "AUDI": ["A1","A3","A4","A5","A6","A7","A8","Q2","Q3","Q5","Q7","Q8","TT","E-TRON"], "VOLKSWAGEN": ["POLO","GOLF","JETTA","BORA","PASSAT","ARTEON","SCIROCCO","T-CROSS","T-ROC","TIGUAN","TOUAREG","CADDY","TRANSPORTER","CRAFTER","AMAROK"], "RENAULT": ["R9","R11","R12","TOROS","BROADWAY","CLIO","SYMBOL","MEGANE","FLUENCE","LAGUNA","TALISMAN","TALIANT","CAPTUR","KADJAR","KOLEOS","AUSTRAL","ZOE","KANGOO","MASTER"], "FIAT": ["SAHIN","DOGAN","KARTAL","UNO","PALIO","SIENA","ALBEA","MAREA","LINEA","EGEA","EGEA CROSS","500","PANDA","DOBLO","FIORINO","DUCATO"], "TOYOTA": ["COROLLA","AURIS","YARIS","AVENSIS","C-HR","COROLLA CROSS","RAV4","HILUX"], "FORD": ["TAUNUS","ESCORT","SIERRA","FIESTA","FOCUS","MONDEO","FUSION","PUMA","KUGA","EDGE","COURIER","CONNECT","TRANSIT","RANGER"], "HYUNDAI": ["EXCEL","ACCENT","ACCENT ERA","ACCENT BLUE","ELANTRA","I10","I20","I30","BAYON","KONA","TUCSON","SANTA FE","H100"], "HONDA": ["CIVIC","ACCORD","CITY","JAZZ","HR-V","CR-V"], "OPEL": ["CORSA","ASTRA","VECTRA","INSIGNIA","MOKKA","CROSSLAND","GRANDLAND","COMBO"], "PEUGEOT": ["106","206","207","208","306","307","308","406","407","408","508","2008","3008","5008","PARTNER","RIFTER","BOXER"], "SKODA": ["FELICIA","FABIA","RAPID","SCALA","OCTAVIA","SUPERB","KAMIQ","KAROQ","KODIAQ"], "VOLVO": ["S40","S60","S90","V40","V60","V90","XC40","XC60","XC90"], "DACIA": ["LOGAN","SANDERO","SANDERO STEPWAY","DUSTER","JOGGER"], "TESLA": ["MODEL 3","MODEL Y","MODEL S","MODEL X"], "TOGG": ["T10X","T10F"], "NISSAN": ["MICRA","ALMERA","PRIMERA","JUKE","QASHQAI","X-TRAIL","NAVARA"], "KIA": ["PICANTO","RIO","CERATO","CEED","STONIC","SPORTAGE","SORENTO"], "CITROEN": ["C3","C4","C5 AIRCROSS","BERLINGO","JUMPER"], "CHEVROLET": ["AVEO","CRUZE","LACETTI","CAPTIVA"], "MITSUBISHI": ["COLT","CARISMA","LANCER","ASX","L200"], "MAZDA": ["2","3","6","CX-3","CX-5","CX-60"], "SUZUKI": ["SWIFT","VITARA","SX4","JIMNY"], "SEAT": ["IBIZA","LEON","TOLEDO","ARONA","ATECA"], "ALFA ROMEO": ["GIULIETTA","GIULIA","STELVIO"], "LAND ROVER": ["DEFENDER","DISCOVERY","RANGE ROVER","EVOQUE"], "JEEP": ["RENEGADE","COMPASS","WRANGLER","CHEROKEE"], "MINI": ["ONE","COOPER","COUNTRYMAN"], "DIGER": ["DIGER MODEL"] };
-
         let localData = { transactions: {}, expenses: {}, services: {}, settings: {} };
         let currentUser = null;
 
@@ -247,34 +221,17 @@
             getWeather(); startClock(); showSection('panel');
         };
 
-        const refresh = () => {
-            renderTransactions(); renderCustomers(); renderExpenses(); renderServices(); renderStats(); renderReports(); lucide.createIcons();
-        };
-
+        const refresh = () => { renderTransactions(); renderCustomers(); renderExpenses(); renderServices(); renderStats(); renderReports(); lucide.createIcons(); };
         const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
         const toFloat = (s) => (typeof s === 'number') ? s : parseFloat(s?.toString().replace(/\./g, "").replace(",", ".")) || 0;
         const normalize = (val) => val?.toString().replace(/[çğıöşüÇĞİÖŞÜ]/g, m => ({'ç':'C','ğ':'G','ı':'I','ö':'O','ş':'S','ü':'U','Ç':'C','Ğ':'G','İ':'I','Ö':'O','Ş':'S','Ü':'U'})[m]).toUpperCase() || "";
-
-        const toggleSidebar = () => {
-            const sb = document.getElementById('app-sidebar');
-            const ov = document.getElementById('sidebar-overlay');
-            sb.classList.toggle('open');
-            ov.classList.toggle('show');
-        };
-
+        const toggleSidebar = () => { document.getElementById('app-sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('show'); };
         const showSection = (id) => {
             document.querySelectorAll('section').forEach(s => s.classList.remove('active-section'));
             document.getElementById(id + '-section').classList.add('active-section');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('nav-active'));
-            const nav = document.getElementById('nav-' + id);
-            if(nav) nav.classList.add('nav-active');
-            
-            // Mobilde menüyü kapat
-            if(window.innerWidth < 1024) {
-                document.getElementById('app-sidebar').classList.remove('open');
-                document.getElementById('sidebar-overlay').classList.remove('show');
-            }
-            refresh();
+            if(document.getElementById('nav-' + id)) document.getElementById('nav-' + id).classList.add('nav-active');
+            if(window.innerWidth < 1024) { document.getElementById('app-sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('show'); }
         };
 
         const renderStats = () => {
@@ -282,28 +239,18 @@
             const trs = Object.values(localData.transactions || {});
             const exs = Object.values(localData.expenses || {});
             const now = new Date();
-            
             const dRev = trs.filter(t => isSameDay(new Date(t.date), now)).reduce((s,t) => s + toFloat(t.price), 0);
             const dEx = exs.filter(e => isSameDay(new Date(e.date), now)).reduce((s,e) => s + toFloat(e.amount), 0);
             const mRev = trs.filter(t => new Date(t.date).getMonth() === now.getMonth()).reduce((s,t) => s + toFloat(t.price), 0);
-            
             const fixed = toFloat(localData.settings?.fixed || 0);
-            const dailyFixed = fixed / 26;
-            
-            document.getElementById('stat-net-profit').innerText = `₺${Math.round(dRev - dEx - dailyFixed).toLocaleString()}`;
+            document.getElementById('stat-net-profit').innerText = `₺${Math.round(dRev - dEx - (fixed/26)).toLocaleString()}`;
             document.getElementById('stat-daily-rev').innerText = `₺${dRev.toLocaleString()}`;
             document.getElementById('stat-monthly-rev').innerText = `₺${mRev.toLocaleString()}`;
-            
             document.getElementById('set-goal').value = localData.settings?.goal || "";
             document.getElementById('set-fixed').value = localData.settings?.fixed || "";
         };
 
-        const saveSets = () => {
-            db.ref('settings').set({
-                goal: document.getElementById('set-goal').value,
-                fixed: document.getElementById('set-fixed').value
-            });
-        };
+        const saveSets = () => db.ref('settings').set({ goal: document.getElementById('set-goal').value, fixed: document.getElementById('set-fixed').value });
 
         const renderTransactions = () => {
             const search = normalize(document.getElementById('search-tx').value);
@@ -316,10 +263,7 @@
                     <td class="p-4"><span class="bg-purple-100 text-[#b66dff] text-[10px] px-2 py-1 rounded font-bold uppercase">${t.serviceName}</span></td>
                     <td class="p-4 text-right font-bold">₺${toFloat(t.price).toLocaleString()}</td>
                     <td class="p-4 text-center">
-                        ${currentUser === 'ADMIN' ? `
-                        <button onclick="editTr('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteItem('transactions', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        ` : '-'}
+                        ${currentUser === 'ADMIN' ? `<button onclick="editTr('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button><button onclick="deleteItem('transactions', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '-'}
                     </td>
                 </tr>
             `).join('');
@@ -338,7 +282,6 @@
                     <td class="p-4 text-[11px] font-bold text-gray-400">${c.brand} ${c.model}</td>
                     <td class="p-4 text-center flex justify-center gap-2">
                         <button onclick="openCustomerModal('${c.plate}')" class="text-purple-400"><i data-lucide="history" class="w-5 h-5"></i></button>
-                        ${currentUser === 'ADMIN' ? `<button onclick="loadCustToForm('${c.plate}')" class="text-blue-400"><i data-lucide="edit-3" class="w-5 h-5"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -352,12 +295,7 @@
                     <td class="p-4 text-[10px] text-gray-400 font-bold">${new Date(e.date).toLocaleDateString()}</td>
                     <td class="p-4 uppercase font-bold text-gray-600">${e.desc}</td>
                     <td class="p-4 text-right font-bold text-red-400">₺${toFloat(e.amount).toLocaleString()}</td>
-                    <td class="p-4 text-center">
-                        ${currentUser === 'ADMIN' ? `
-                        <button onclick="editEx('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        ` : ''}
-                    </td>
+                    <td class="p-4 text-center">${currentUser === 'ADMIN' ? `<button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}</td>
                 </tr>
             `).join('');
             lucide.createIcons();
@@ -365,135 +303,50 @@
 
         const renderServices = () => {
             const srvs = Object.entries(localData.services || {});
-            document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `
-                <div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>
-            `).join('');
-            document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
-                <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase">
-                    <span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span>
-                    <div class="flex gap-2">
-                        <button onclick="editSrv('${id}')" class="text-blue-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                </div>
-            `).join('');
+            document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `<div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>`).join('');
+            document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `<div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase"><span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span><button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join('');
             lucide.createIcons();
         };
 
         const editTr = (id) => {
-            const t = localData.transactions[id];
-            showSection('islemler');
-            document.getElementById('tr-id').value = id;
-            document.getElementById('tr-plate').value = t.plate;
-            document.getElementById('tr-name').value = t.name;
-            document.getElementById('tr-phone').value = t.phone;
-            document.getElementById('tr-brand').value = t.brand;
-            updateModels(t.brand);
-            setTimeout(() => {
-                document.getElementById('tr-model').value = t.model;
-                document.querySelectorAll('.srv-checkbox').forEach(cb => cb.checked = t.serviceName.includes(cb.dataset.name));
-                updateTrPrice();
-                document.getElementById('btn-tr-save').innerText = "GÜNCELLE";
-            }, 100);
-        };
-
-        const editEx = (id) => {
-            const e = localData.expenses[id];
-            document.getElementById('ex-id').value = id;
-            document.getElementById('ex-amount').value = toFloat(e.amount).toLocaleString();
-            document.getElementById('ex-desc').value = e.desc;
-            document.getElementById('btn-ex-save').innerText = "GÜNCELLE";
-        };
-
-        const editSrv = (id) => {
-            const s = localData.services[id];
-            document.getElementById('srv-id').value = id;
-            document.getElementById('srv-name').value = s.name;
-            document.getElementById('srv-price').value = toFloat(s.price).toLocaleString();
-            document.getElementById('btn-srv-save').innerText = "GÜNCELLE";
+            const t = localData.transactions[id]; showSection('islemler'); document.getElementById('tr-id').value = id; document.getElementById('tr-plate').value = t.plate; document.getElementById('tr-name').value = t.name; document.getElementById('tr-phone').value = t.phone; document.getElementById('tr-brand').value = t.brand; updateModels(t.brand);
+            setTimeout(() => { document.getElementById('tr-model').value = t.model; document.querySelectorAll('.srv-checkbox').forEach(cb => cb.checked = t.serviceName.includes(cb.dataset.name)); updateTrPrice(); document.getElementById('btn-tr-save').innerText = "GÜNCELLE"; }, 100);
         };
 
         const openCustomerModal = (plate) => {
             const history = Object.values(localData.transactions || {}).filter(t => t.plate === plate).reverse();
-            const c = history[0];
-            document.getElementById('modal-customer-plate').innerText = c.plate;
-            document.getElementById('modal-customer-info').innerText = `${c.name || 'İSİMSİZ'} | ${c.brand} ${c.model}`;
+            const c = history[0]; document.getElementById('modal-customer-plate').innerText = c.plate; document.getElementById('modal-customer-info').innerText = `${c.name || 'İSİMSİZ'} | ${c.brand} ${c.model}`;
             document.getElementById('modal-history-body').innerHTML = history.map(h => `<tr><td class="py-3 text-[10px] font-bold text-gray-400">${new Date(h.date).toLocaleDateString()}</td><td class="py-3 text-xs font-bold uppercase">${h.serviceName}</td><td class="py-3 text-right font-bold text-[#b66dff]">₺${toFloat(h.price).toLocaleString()}</td></tr>`).join('');
-            document.getElementById('customer-modal').classList.add('show');
-            lucide.createIcons();
+            document.getElementById('customer-modal').classList.add('show'); lucide.createIcons();
         };
         const closeCustomerModal = () => document.getElementById('customer-modal').classList.remove('show');
 
         const getWeather = async () => {
-            try {
-                const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.0&longitude=29.0&current_weather=true&hourly=precipitation_probability");
-                const data = await res.json();
-                document.getElementById('header-weather').innerText = `${data.current_weather.temperature}°C | YAĞIŞ %${data.hourly.precipitation_probability[0]}`;
-                renderAIPlan(data.hourly.precipitation_probability.slice(0, 6));
-            } catch (e) { }
+            try { const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.0&longitude=29.0&current_weather=true&hourly=precipitation_probability"); const data = await res.json(); document.getElementById('header-weather').innerText = `${data.current_weather.temperature}°C | YAĞIŞ %${data.hourly.precipitation_probability[0]}`; renderAIPlan(data.hourly.precipitation_probability.slice(0, 6)); } catch (e) {}
         };
-
         const renderAIPlan = (rainData) => {
-            const now = new Date();
-            document.getElementById('ai-hourly-list').innerHTML = rainData.map((rain, i) => {
-                const hour = (now.getHours() + i) % 24;
-                let advice = rain > 25 ? "İÇ TEMİZLİK ODAKLI ÇALIŞ" : "DIŞ YIKAMA VE CİLA ÖNER";
-                let color = rain > 25 ? "text-red-400" : "text-green-500";
-                return `<div class="p-3 bg-gray-50 rounded border-l-4 border-purple-400 flex justify-between items-center"><span class="font-bold text-gray-400">${hour}:00</span><span class="font-bold ${color}">%${rain} YAĞIŞ</span><span class="text-[10px] font-bold uppercase text-gray-600">${advice}</span></div>`;
-            }).join('');
+            const now = new Date(); document.getElementById('ai-hourly-list').innerHTML = rainData.map((rain, i) => { const hour = (now.getHours() + i) % 24; let advice = rain > 25 ? "İÇ TEMİZLİK ODAKLI" : "DIŞ YIKAMA ÖNER"; return `<div class="p-3 bg-gray-50 rounded border-l-4 border-purple-400 flex justify-between items-center"><span class="font-bold text-gray-400">${hour}:00</span><span class="font-bold ${rain > 25 ? 'text-red-400':'text-green-500'}">%${rain}</span><span class="text-[10px] font-bold uppercase text-gray-600">${advice}</span></div>`; }).join('');
         };
 
         document.getElementById('form-transaction').onsubmit = e => {
-            e.preventDefault();
-            const selected = Array.from(document.querySelectorAll('.srv-checkbox:checked'));
-            if(!selected.length) return alert("Hizmet seçilmedi!");
-            const data = {
-                plate: normalize(document.getElementById('tr-plate').value),
-                name: normalize(document.getElementById('tr-name').value),
-                phone: document.getElementById('tr-phone').value,
-                brand: document.getElementById('tr-brand').value,
-                model: normalize(document.getElementById('tr-model').value),
-                serviceName: selected.map(s => s.dataset.name).join(", "),
-                price: selected.reduce((s,v) => s + toFloat(v.dataset.price), 0),
-                date: new Date().toISOString()
-            };
-            const id = document.getElementById('tr-id').value;
-            if(id) db.ref('transactions/' + id).set(data); else db.ref('transactions').push(data);
-            e.target.reset(); document.getElementById('tr-id').value = ""; document.getElementById('btn-tr-save').innerText = "İŞLEMİ KAYDET";
-            showSection('panel');
+            e.preventDefault(); const selected = Array.from(document.querySelectorAll('.srv-checkbox:checked')); if(!selected.length) return alert("Hizmet seç!");
+            const data = { plate: normalize(document.getElementById('tr-plate').value), name: normalize(document.getElementById('tr-name').value), phone: document.getElementById('tr-phone').value, brand: document.getElementById('tr-brand').value, model: normalize(document.getElementById('tr-model').value), serviceName: selected.map(s => s.dataset.name).join(", "), price: selected.reduce((s,v) => s + toFloat(v.dataset.price), 0), waNotify: document.getElementById('tr-wa-notify').checked, date: new Date().toISOString() };
+            const id = document.getElementById('tr-id').value; if(id) db.ref('transactions/' + id).set(data); else db.ref('transactions').push(data);
+            e.target.reset(); document.getElementById('tr-id').value = ""; document.getElementById('btn-tr-save').innerText = "İŞLEMİ KAYDET"; showSection('panel');
         };
 
-        document.getElementById('form-expense').onsubmit = e => {
-            e.preventDefault();
-            const data = { amount: toFloat(document.getElementById('ex-amount').value), desc: normalize(document.getElementById('ex-desc').value), date: new Date().toISOString() };
-            const id = document.getElementById('ex-id').value;
-            if(id) db.ref('expenses/' + id).set(data); else db.ref('expenses').push(data);
-            e.target.reset(); document.getElementById('ex-id').value = ""; document.getElementById('btn-ex-save').innerText = "KAYDET";
-        };
-
-        document.getElementById('form-service').onsubmit = e => {
-            e.preventDefault();
-            const data = { name: normalize(document.getElementById('srv-name').value), price: toFloat(document.getElementById('srv-price').value) };
-            const id = document.getElementById('srv-id').value;
-            if(id) db.ref('services/' + id).set(data); else db.ref('services').push(data);
-            e.target.reset(); document.getElementById('srv-id').value = ""; document.getElementById('btn-srv-save').innerText = "EKLE";
-        };
-
-        const deleteItem = (path, id) => { if(confirm("Silmek istediğine emin misin?")) db.ref(`${path}/${id}`).remove(); };
+        document.getElementById('form-expense').onsubmit = e => { e.preventDefault(); db.ref('expenses').push({ amount: toFloat(document.getElementById('ex-amount').value), desc: normalize(document.getElementById('ex-desc').value), date: new Date().toISOString() }); e.target.reset(); };
+        document.getElementById('form-service').onsubmit = e => { e.preventDefault(); db.ref('services').push({ name: normalize(document.getElementById('srv-name').value), price: toFloat(document.getElementById('srv-price').value) }); e.target.reset(); };
+        const deleteItem = (path, id) => { if(confirm("Sil?")) db.ref(`${path}/${id}`).remove(); };
         const startClock = () => setInterval(() => document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}), 1000);
         const updateTrPrice = () => { const total = Array.from(document.querySelectorAll('.srv-checkbox:checked')).reduce((s,v) => s + toFloat(v.dataset.price), 0); document.getElementById('tr-price-display').innerText = `₺${total.toLocaleString()}`; };
         const updateModels = (b) => { const container = document.getElementById('model-container'); if(b === "DIGER") container.innerHTML = '<input type="text" id="tr-model" placeholder="MODEL YAZIN">'; else container.innerHTML = `<select id="tr-model">${(VEHICLES[b] || []).map(m => `<option value="${m}">${m}</option>`).join('')}</select>`; };
         const searchCRM = (plate) => { const p = normalize(plate); if(p.length < 3) return; const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); if(history.length > 0) { document.getElementById('tr-name').value = history[0].name; document.getElementById('tr-phone').value = history[0].phone; document.getElementById('crm-history').innerHTML = history.slice(0,2).map(h => `<div class="p-2 bg-gray-50 rounded mb-1 border-l-4 border-purple-400 text-[9px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); } };
-        const loadCustToForm = (plate) => { const t = Object.values(localData.transactions).reverse().find(x => x.plate === plate); if(t) editTr(Object.keys(localData.transactions).find(key => localData.transactions[key] === t)); };
-        const renderReports = () => { const date = new Date(document.getElementById('report-date').value); const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date)); const exs = Object.values(localData.expenses || {}).filter(e => isSameDay(new Date(e.date), date)); const rev = trs.reduce((s,t) => s + toFloat(t.price), 0); const ex = exs.reduce((s,e) => s + toFloat(e.amount), 0); document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`; document.getElementById('rep-total-net').innerText = `₺${(rev-ex).toLocaleString()}`; document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join(''); };
+        const renderReports = () => { const date = new Date(document.getElementById('report-date').value); const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date)); const rev = trs.reduce((s,t) => s + toFloat(t.price), 0); document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`; document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join(''); };
 
         document.addEventListener('input', e => {
             if(e.target.classList.contains('currency-mask')) e.target.value = new Intl.NumberFormat('tr-TR').format(e.target.value.replace(/\D/g, ""));
-            else if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                const start = e.target.selectionStart;
-                e.target.value = normalize(e.target.value);
-                e.target.setSelectionRange(start, start);
-            }
+            else if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { const start = e.target.selectionStart; e.target.value = normalize(e.target.value); e.target.setSelectionRange(start, start); }
         });
     </script>
 </body>
