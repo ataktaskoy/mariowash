@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MarioWash Pro - v33 Final</title>
+    <title>MarioWash Pro - v34 Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -26,13 +26,17 @@
         input, select, textarea { border: 1px solid #ebedf2 !important; border-radius: 6px !important; padding: 10px !important; width: 100%; outline: none; text-transform: uppercase; font-size: 0.85rem; }
         .btn-purple { background: linear-gradient(to right, #da8cff, #9a55ff); color: white; font-weight: 700; padding: 12px; border-radius: 6px; cursor: pointer; border: none; width: 100%; }
         
+        /* PROFESYONEL HİZMET SEÇİM BUTONLARI */
+        .srv-checkbox { display: none; }
+        .srv-label { display: block; padding: 12px 8px; border: 1px solid #ebedf2; border-radius: 8px; cursor: pointer; font-size: 10px; font-weight: bold; text-align: center; text-transform: uppercase; transition: 0.2s; background: white; height: 100%; display: flex; align-items: center; justify-content: center; color: #8e94a9; }
+        .srv-checkbox:checked + .srv-label { background: #b66dff; color: white; border-color: #b66dff; shadow: 0 4px 10px rgba(182, 109, 255, 0.3); }
+
         #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; display: none; }
         #sidebar-overlay.show { display: block; }
         
         #customer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
         #customer-modal.show { display: flex; }
         
-        /* Geçişleri engellemek için sadece aktif olanı göster */
         section { display: none; }
         section.active-section { display: block !important; }
     </style>
@@ -89,7 +93,7 @@
             <!-- PANEL -->
             <section id="panel-section" class="p-4 lg:p-6 max-w-6xl mx-auto active-section">
                 <div id="admin-stats" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    <div class="card-orange p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Net Kâr</p><h3 id="stat-net-profit" class="text-xl font-bold">₺0</h3></div>
+                    <div class="card-orange p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Net Kâr (Günlük)</p><h3 id="stat-net-profit" class="text-xl font-bold">₺0</h3></div>
                     <div class="card-blue p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Bugün Ciro</p><h3 id="stat-daily-rev" class="text-lg font-bold">₺0</h3></div>
                     <div class="card-green p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Aylık Ciro</p><h3 id="stat-monthly-rev" class="text-lg font-bold">₺0</h3></div>
                 </div>
@@ -113,7 +117,7 @@
             <!-- İŞLEMLER -->
             <section id="islemler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-white p-6 card-shadow">
+                    <div class="lg:col-span-2 bg-white p-8 card-shadow">
                         <h3 class="text-lg font-bold mb-6 text-gray-700 uppercase">Araç Kabul</h3>
                         <form id="form-transaction" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input type="hidden" id="tr-id">
@@ -122,12 +126,15 @@
                             <input type="tel" id="tr-phone" placeholder="TELEFON">
                             <select id="tr-brand" onchange="updateModels(this.value)"></select>
                             <div id="model-container"><select id="tr-model"><option value="">MODEL SEÇİN</option></select></div>
-                            <div class="md:col-span-2"><div id="tr-services-list" class="grid grid-cols-2 md:grid-cols-3 gap-2"></div></div>
-                            <div class="md:col-span-2 bg-purple-50 p-4 rounded-lg flex justify-between items-center">
-                                <span class="font-bold text-gray-500 text-xs uppercase">Tahsilat</span>
+                            <div class="md:col-span-2 mt-4">
+                                <label class="text-[10px] font-bold text-gray-400 uppercase mb-3 block tracking-widest">Hizmet Paketleri</label>
+                                <div id="tr-services-list" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+                            </div>
+                            <div class="md:col-span-2 bg-purple-50 p-5 rounded-xl flex justify-between items-center mt-4">
+                                <span class="font-bold text-gray-400 text-xs uppercase">Tahsilat Tutarı</span>
                                 <span id="tr-price-display" class="text-3xl font-bold text-[#b66dff]">₺0</span>
                             </div>
-                            <button type="submit" id="btn-tr-save" class="md:col-span-2 btn-purple uppercase">İşlemi Kaydet</button>
+                            <button type="submit" id="btn-tr-save" class="md:col-span-2 btn-purple uppercase mt-4">İşlemi Kaydet</button>
                         </form>
                     </div>
                     <div class="bg-white p-5 card-shadow h-fit">
@@ -152,7 +159,7 @@
             <section id="raporlar-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="bg-white p-5 card-shadow mb-6 flex justify-between items-center">
                     <input type="date" id="report-date" class="!w-40" onchange="renderReports()">
-                    <div class="flex gap-6"><p id="rep-total-rev" class="font-bold text-blue-500">₺0</p><p id="rep-total-net" class="font-bold text-green-500">₺0</p></div>
+                    <div class="flex gap-6"><p id="rep-total-rev" class="font-bold text-blue-500 text-xl">₺0</p><p id="rep-total-net" class="font-bold text-green-500 text-xl">₺0</p></div>
                 </div>
                 <div class="bg-white card-shadow overflow-x-auto"><table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-reports"></tbody></table></div>
             </section>
@@ -171,10 +178,19 @@
 
             <!-- AYARLAR -->
             <section id="ayarlar-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
-                <div class="bg-white p-6 card-shadow max-w-2xl mx-auto">
-                    <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Hizmet Paketleri</h3>
-                    <form id="form-service" class="flex gap-2 mb-6"><input type="hidden" id="srv-id"><input type="text" id="srv-name" placeholder="Paket Adı" required><input type="text" id="srv-price" class="w-32 currency-mask" placeholder="₺" required><button type="submit" id="btn-srv-save" class="bg-[#b66dff] text-white px-6 rounded font-bold uppercase text-xs">Ekle</button></form>
-                    <div id="list-services" class="space-y-2"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 card-shadow">
+                        <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Hizmet Paketleri</h3>
+                        <form id="form-service" class="flex gap-2 mb-6"><input type="hidden" id="srv-id"><input type="text" id="srv-name" placeholder="Paket Adı" required><input type="text" id="srv-price" class="w-32 currency-mask" placeholder="₺" required><button type="submit" id="btn-srv-save" class="bg-[#b66dff] text-white px-6 rounded font-bold uppercase text-xs">Ekle</button></form>
+                        <div id="list-services" class="space-y-2"></div>
+                    </div>
+                    <div class="bg-white p-6 card-shadow">
+                        <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Finansal Hedefler</h3>
+                        <div class="space-y-4">
+                            <div><label class="text-[10px] font-bold text-gray-400 uppercase">Aylık Ciro Hedefi</label><input type="text" id="set-goal" class="currency-mask" onchange="saveSets()"></div>
+                            <div><label class="text-[10px] font-bold text-gray-400 uppercase">Sabit Gider (Kira, Maaş vb.)</label><input type="text" id="set-fixed" class="currency-mask" onchange="saveSets()"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -328,7 +344,11 @@
             document.getElementById('stat-net-profit').innerText = `₺${Math.round(dRev - dEx).toLocaleString()}`;
             document.getElementById('stat-daily-rev').innerText = `₺${dRev.toLocaleString()}`;
             document.getElementById('stat-monthly-rev').innerText = `₺${mRev.toLocaleString()}`;
+            document.getElementById('set-goal').value = localData.settings?.goal || "";
+            document.getElementById('set-fixed').value = localData.settings?.fixed || "";
         };
+
+        const saveSets = () => db.ref('settings').set({ goal: document.getElementById('set-goal').value, fixed: document.getElementById('set-fixed').value });
 
         const renderReports = () => {
             const date = new Date(document.getElementById('report-date').value);
