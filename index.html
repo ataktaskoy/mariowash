@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MarioWash Pro - v32 Ultimate</title>
+    <title>MarioWash Pro - v33 Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -14,10 +14,7 @@
         .sidebar { background: #ffffff; width: 260px; height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); z-index: 100; transition: 0.3s; flex-shrink: 0; }
         @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
         
-        #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; }
-        .section-container { display: none; width: 100%; max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
-        .section-container.active { display: block; }
-
+        #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f2edf3; }
         .nav-link { color: #3e4b5b; padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-link:hover, .nav-active { color: #b66dff; background: #fbfaff; font-weight: 700; border-left: 4px solid #b66dff; }
         
@@ -29,20 +26,15 @@
         input, select, textarea { border: 1px solid #ebedf2 !important; border-radius: 6px !important; padding: 10px !important; width: 100%; outline: none; text-transform: uppercase; font-size: 0.85rem; }
         .btn-purple { background: linear-gradient(to right, #da8cff, #9a55ff); color: white; font-weight: 700; padding: 12px; border-radius: 6px; cursor: pointer; border: none; width: 100%; }
         
-        .admin-only { display: none !important; }
-        .is-admin .admin-only { display: flex !important; }
-        .is-admin .admin-table-cell { display: table-cell !important; }
-        .admin-table-cell { display: none; }
-
-        .srv-checkbox { display: none; }
-        .srv-label { display: block; padding: 8px; border: 1px solid #ebedf2; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: bold; text-align: center; text-transform: uppercase; height: 100%; display: flex; align-items: center; justify-content: center; }
-        .srv-checkbox:checked + .srv-label { background: #b66dff; color: white; border-color: #b66dff; }
-        
         #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; display: none; }
         #sidebar-overlay.show { display: block; }
         
         #customer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
         #customer-modal.show { display: flex; }
+        
+        /* Geçişleri engellemek için sadece aktif olanı göster */
+        section { display: none; }
+        section.active-section { display: block !important; }
     </style>
 </head>
 <body class="flex">
@@ -74,9 +66,9 @@
             <div onclick="showSection('panel')" id="nav-panel" class="nav-link nav-active"><i data-lucide="layout-dashboard"></i> Panel</div>
             <div onclick="showSection('islemler')" id="nav-islemler" class="nav-link"><i data-lucide="car"></i> İşlemler</div>
             <div onclick="showSection('musteriler')" id="nav-musteriler" class="nav-link"><i data-lucide="users"></i> Müşteriler</div>
-            <div onclick="showSection('raporlar')" id="nav-raporlar" class="admin-only nav-link"><i data-lucide="file-text"></i> Raporlar</div>
-            <div onclick="showSection('giderler')" id="nav-giderler" class="admin-only nav-link"><i data-lucide="receipt"></i> Giderler</div>
-            <div onclick="showSection('ayarlar')" id="nav-ayarlar" class="admin-only nav-link"><i data-lucide="settings"></i> Ayarlar</div>
+            <div onclick="showSection('raporlar')" id="nav-raporlar" class="nav-link admin-nav hidden"><i data-lucide="file-text"></i> Raporlar</div>
+            <div onclick="showSection('giderler')" id="nav-giderler" class="nav-link admin-nav hidden"><i data-lucide="receipt"></i> Giderler</div>
+            <div onclick="showSection('ayarlar')" id="nav-ayarlar" class="nav-link admin-nav hidden"><i data-lucide="settings"></i> Ayarlar</div>
         </nav>
     </aside>
 
@@ -95,38 +87,23 @@
         <div id="main-content">
             
             <!-- PANEL -->
-            <section id="panel-section" class="section-container active">
-                <div class="admin-only grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    <div class="card-orange p-4 card-shadow">
-                        <p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Net Kâr</p>
-                        <h3 id="stat-net-profit" class="text-xl font-bold">₺0</h3>
-                    </div>
-                    <div class="card-blue p-4 card-shadow">
-                        <p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Bugün Ciro</p>
-                        <h3 id="stat-daily-rev" class="text-lg font-bold">₺0</h3>
-                    </div>
-                    <div class="card-green p-4 card-shadow">
-                        <p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Aylık Ciro</p>
-                        <h3 id="stat-monthly-rev" class="text-lg font-bold">₺0</h3>
-                    </div>
+            <section id="panel-section" class="p-4 lg:p-6 max-w-6xl mx-auto active-section">
+                <div id="admin-stats" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="card-orange p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Net Kâr</p><h3 id="stat-net-profit" class="text-xl font-bold">₺0</h3></div>
+                    <div class="card-blue p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Bugün Ciro</p><h3 id="stat-daily-rev" class="text-lg font-bold">₺0</h3></div>
+                    <div class="card-green p-4 card-shadow"><p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Aylık Ciro</p><h3 id="stat-monthly-rev" class="text-lg font-bold">₺0</h3></div>
                 </div>
 
                 <div class="bg-white p-5 card-shadow mb-6 border-l-4 border-[#b66dff]">
-                    <div class="flex items-center gap-2 mb-4 text-[#b66dff]">
-                        <i data-lucide="calendar-clock" class="w-4 h-4"></i>
-                        <h3 class="text-[10px] font-bold uppercase tracking-widest">AI Operasyonel Saatlik Plan</h3>
-                    </div>
+                    <div class="flex items-center gap-2 mb-4 text-[#b66dff]"><i data-lucide="calendar-clock" class="w-4 h-4"></i><h3 class="text-[10px] font-bold uppercase tracking-widest">AI Operasyonel Saatlik Plan</h3></div>
                     <div id="ai-hourly-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
                 </div>
 
                 <div class="bg-white card-shadow overflow-x-auto">
-                    <div class="p-4 border-b flex justify-between items-center min-w-[600px]">
-                        <h3 class="font-bold text-xs uppercase text-gray-400">Son İşlemler</h3>
-                        <input type="text" id="search-tx" class="!w-48 !p-2 text-xs" placeholder="PLAKA ARA..." oninput="renderTransactions()">
-                    </div>
+                    <div class="p-4 border-b flex justify-between items-center min-w-[600px]"><h3 class="font-bold text-xs uppercase text-gray-400">Son İşlemler</h3><input type="text" id="search-tx" class="!w-48 !p-2 text-xs" placeholder="PLAKA ARA..." oninput="renderTransactions()"></div>
                     <table class="w-full text-left text-sm min-w-[600px]">
                         <thead class="bg-gray-50 text-gray-400 text-[10px] uppercase">
-                            <tr><th class="p-4">Saat</th><th class="p-4">Plaka</th><th class="p-4">Araç</th><th class="p-4">Hizmet</th><th class="p-4 text-right">Tutar</th><th class="p-4 text-center admin-table-cell">İşlem</th></tr>
+                            <tr><th class="p-4">Saat</th><th class="p-4">Plaka</th><th class="p-4">Araç</th><th class="p-4">Hizmet</th><th class="p-4 text-right">Tutar</th><th class="p-4 text-center">İşlem</th></tr>
                         </thead>
                         <tbody id="table-transactions"></tbody>
                     </table>
@@ -134,7 +111,7 @@
             </section>
 
             <!-- İŞLEMLER -->
-            <section id="islemler-section" class="section-container">
+            <section id="islemler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white p-6 card-shadow">
                         <h3 class="text-lg font-bold mb-6 text-gray-700 uppercase">Araç Kabul</h3>
@@ -161,11 +138,9 @@
             </section>
 
             <!-- MÜŞTERİLER -->
-            <section id="musteriler-section" class="section-container">
+            <section id="musteriler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="bg-white card-shadow overflow-x-auto">
-                    <div class="p-4 border-b flex justify-between items-center">
-                        <input type="text" id="search-cust" class="!w-64 !p-2" placeholder="ARA..." oninput="renderCustomers()">
-                    </div>
+                    <div class="p-4 border-b flex justify-between items-center min-w-[600px]"><h3 class="font-bold text-xs uppercase text-gray-400">Müşteriler</h3><input type="text" id="search-cust" class="!w-64 !p-2" placeholder="ARA..." oninput="renderCustomers()"></div>
                     <table class="w-full text-left text-sm min-w-[600px]">
                         <thead class="bg-gray-50 text-[10px] uppercase text-gray-400"><tr><th class="p-4">Plaka</th><th class="p-4">Müşteri</th><th class="p-4">Araç</th><th class="p-4 text-center">İşlem</th></tr></thead>
                         <tbody id="table-customers"></tbody>
@@ -173,8 +148,8 @@
                 </div>
             </section>
 
-            <!-- RAPORLAR (ADMIN) -->
-            <section id="raporlar-section" class="section-container admin-only">
+            <!-- RAPORLAR -->
+            <section id="raporlar-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="bg-white p-5 card-shadow mb-6 flex justify-between items-center">
                     <input type="date" id="report-date" class="!w-40" onchange="renderReports()">
                     <div class="flex gap-6"><p id="rep-total-rev" class="font-bold text-blue-500">₺0</p><p id="rep-total-net" class="font-bold text-green-500">₺0</p></div>
@@ -182,31 +157,23 @@
                 <div class="bg-white card-shadow overflow-x-auto"><table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-reports"></tbody></table></div>
             </section>
 
-            <!-- GİDERLER (ADMIN) -->
-            <section id="giderler-section" class="section-container admin-only">
+            <!-- GİDERLER -->
+            <section id="giderler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 card-shadow h-fit">
                         <form id="form-expense" class="space-y-4">
-                            <input type="hidden" id="ex-id">
-                            <input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required>
-                            <textarea id="ex-desc" placeholder="Açıklama..."></textarea>
-                            <button type="submit" id="btn-ex-save" class="btn-purple text-xs uppercase">Kaydet</button>
+                            <input type="hidden" id="ex-id"><input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required><textarea id="ex-desc" placeholder="Açıklama..."></textarea><button type="submit" id="btn-ex-save" class="btn-purple text-xs uppercase">Kaydet</button>
                         </form>
                     </div>
                     <div class="md:col-span-2 bg-white card-shadow overflow-x-auto"><table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-expenses"></tbody></table></div>
                 </div>
             </section>
 
-            <!-- AYARLAR (ADMIN) -->
-            <section id="ayarlar-section" class="section-container admin-only">
+            <!-- AYARLAR -->
+            <section id="ayarlar-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="bg-white p-6 card-shadow max-w-2xl mx-auto">
                     <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Hizmet Paketleri</h3>
-                    <form id="form-service" class="flex gap-2 mb-6">
-                        <input type="hidden" id="srv-id">
-                        <input type="text" id="srv-name" placeholder="Paket Adı" required>
-                        <input type="text" id="srv-price" class="w-32 currency-mask" placeholder="₺" required>
-                        <button type="submit" id="btn-srv-save" class="bg-[#b66dff] text-white px-6 rounded font-bold uppercase text-xs">Ekle</button>
-                    </form>
+                    <form id="form-service" class="flex gap-2 mb-6"><input type="hidden" id="srv-id"><input type="text" id="srv-name" placeholder="Paket Adı" required><input type="text" id="srv-price" class="w-32 currency-mask" placeholder="₺" required><button type="submit" id="btn-srv-save" class="bg-[#b66dff] text-white px-6 rounded font-bold uppercase text-xs">Ekle</button></form>
                     <div id="list-services" class="space-y-2"></div>
                 </div>
             </section>
@@ -244,11 +211,14 @@
             const pass = document.getElementById('login-pass').value;
             if(pass === "1234" || pass === "5555") {
                 currentUser = (pass === "1234") ? "ADMIN" : "PERSONEL";
-                document.body.classList.toggle('is-admin', currentUser === 'ADMIN');
+                if(currentUser === "ADMIN") {
+                    document.getElementById('admin-stats').classList.remove('hidden');
+                    document.querySelectorAll('.admin-nav').forEach(el => el.classList.remove('hidden'));
+                }
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-shell').classList.remove('hidden');
                 initApp();
-            } else alert("Hatalı Şifre!");
+            } else alert("Hatalı!");
         };
 
         const initApp = () => {
@@ -266,17 +236,14 @@
         const toFloat = (s) => (typeof s === 'number') ? s : parseFloat(s?.toString().replace(/\./g, "").replace(",", ".")) || 0;
         const normalize = (val) => val?.toString().replace(/[çğıöşüÇĞİÖŞÜ]/g, m => ({'ç':'C','ğ':'G','ı':'I','ö':'O','ş':'S','ü':'U','Ç':'C','Ğ':'G','İ':'I','Ö':'O','Ş':'S','Ü':'U'})[m]).toUpperCase() || "";
 
-        const renderStats = () => {
-            if(currentUser !== 'ADMIN') return;
-            const trs = Object.values(localData.transactions || {});
-            const exs = Object.values(localData.expenses || {});
-            const now = new Date();
-            const dRev = trs.filter(t => isSameDay(new Date(t.date), now)).reduce((s,t) => s + toFloat(t.price), 0);
-            const dEx = exs.filter(e => isSameDay(new Date(e.date), now)).reduce((s,e) => s + toFloat(e.amount), 0);
-            const mRev = trs.filter(t => new Date(t.date).getMonth() === now.getMonth()).reduce((s,t) => s + toFloat(t.price), 0);
-            document.getElementById('stat-net-profit').innerText = `₺${Math.round(dRev - dEx).toLocaleString()}`;
-            document.getElementById('stat-daily-rev').innerText = `₺${dRev.toLocaleString()}`;
-            document.getElementById('stat-monthly-rev').innerText = `₺${mRev.toLocaleString()}`;
+        const showSection = (id) => {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active-section'));
+            document.getElementById(id + '-section').classList.add('active-section');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('nav-active'));
+            const nav = document.getElementById('nav-' + id);
+            if(nav) nav.classList.add('nav-active');
+            if(window.innerWidth < 1024) toggleSidebar();
+            refresh();
         };
 
         const renderTransactions = () => {
@@ -289,9 +256,11 @@
                     <td class="p-4 text-[11px] font-bold text-gray-600">${t.brand} ${t.model}</td>
                     <td class="p-4"><span class="bg-purple-100 text-[#b66dff] text-[10px] px-2 py-1 rounded font-bold uppercase">${t.serviceName}</span></td>
                     <td class="p-4 text-right font-bold">₺${toFloat(t.price).toLocaleString()}</td>
-                    <td class="p-4 text-center admin-table-cell">
+                    <td class="p-4 text-center">
+                        ${currentUser === 'ADMIN' ? `
                         <button onclick="editTr('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
                         <button onclick="deleteItem('transactions', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        ` : '-'}
                     </td>
                 </tr>
             `).join('');
@@ -316,7 +285,6 @@
         };
 
         const renderExpenses = () => {
-            if(currentUser !== 'ADMIN') return;
             const exs = Object.entries(localData.expenses || {}).reverse();
             document.getElementById('table-expenses').innerHTML = exs.map(([id, e]) => `
                 <tr class="border-b border-gray-50">
@@ -324,8 +292,10 @@
                     <td class="p-4 uppercase font-bold text-gray-600">${e.desc}</td>
                     <td class="p-4 text-right font-bold text-red-400">₺${toFloat(e.amount).toLocaleString()}</td>
                     <td class="p-4 text-center">
+                        ${currentUser === 'ADMIN' ? `
                         <button onclick="editEx('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
                         <button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        ` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -336,30 +306,39 @@
             document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `
                 <div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>
             `).join('');
-            if(currentUser === 'ADMIN') {
-                document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
-                    <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase">
-                        <span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span>
-                        <div class="flex gap-2">
-                            <button onclick="editSrv('${id}')" class="text-blue-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                            <button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
+            document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
+                <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase">
+                    <span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span>
+                    <div class="flex gap-2">
+                        <button onclick="editSrv('${id}')" class="text-blue-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
-                `).join('');
-            }
+                </div>
+            `).join('');
         };
 
-        const showSection = (id) => {
-            document.querySelectorAll('.section-container').forEach(s => s.classList.remove('active'));
-            document.getElementById(id + '-section').classList.add('active');
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('nav-active'));
-            const nav = document.getElementById('nav-' + id);
-            if(nav) nav.classList.add('nav-active');
-            if(window.innerWidth < 1024) {
-                document.getElementById('app-sidebar').classList.remove('open');
-                document.getElementById('sidebar-overlay').classList.remove('show');
-            }
-            refresh();
+        const renderStats = () => {
+            if(currentUser !== 'ADMIN') return;
+            const trs = Object.values(localData.transactions || {});
+            const exs = Object.values(localData.expenses || {});
+            const now = new Date();
+            const dRev = trs.filter(t => isSameDay(new Date(t.date), now)).reduce((s,t) => s + toFloat(t.price), 0);
+            const dEx = exs.filter(e => isSameDay(new Date(e.date), now)).reduce((s,e) => s + toFloat(e.amount), 0);
+            const mRev = trs.filter(t => new Date(t.date).getMonth() === now.getMonth()).reduce((s,t) => s + toFloat(t.price), 0);
+            document.getElementById('stat-net-profit').innerText = `₺${Math.round(dRev - dEx).toLocaleString()}`;
+            document.getElementById('stat-daily-rev').innerText = `₺${dRev.toLocaleString()}`;
+            document.getElementById('stat-monthly-rev').innerText = `₺${mRev.toLocaleString()}`;
+        };
+
+        const renderReports = () => {
+            const date = new Date(document.getElementById('report-date').value);
+            const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date));
+            const exs = Object.values(localData.expenses || {}).filter(e => isSameDay(new Date(e.date), date));
+            const rev = trs.reduce((s,t) => s + toFloat(t.price), 0);
+            const ex = exs.reduce((s,e) => s + toFloat(e.amount), 0);
+            document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`;
+            document.getElementById('rep-total-net').innerText = `₺${(rev-ex).toLocaleString()}`;
+            document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join('');
         };
 
         const editTr = (id) => {
@@ -415,7 +394,7 @@
             try {
                 const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.0&longitude=29.0&current_weather=true&hourly=precipitation_probability");
                 const data = await res.json();
-                document.getElementById('header-weather').innerText = `${data.current_weather.temperature}°C | %${data.hourly.precipitation_probability[0]} YAĞIŞ`;
+                document.getElementById('header-weather').innerText = `${data.current_weather.temperature}°C | YAĞIŞ %${data.hourly.precipitation_probability[0]}`;
                 renderAIPlan(data.hourly.precipitation_probability.slice(0, 6));
             } catch (e) { }
         };
@@ -426,11 +405,7 @@
                 const hour = (now.getHours() + i) % 24;
                 let advice = rain > 25 ? "İÇ TEMİZLİK ODAKLI ÇALIŞ" : "DIŞ YIKAMA VE CİLA ÖNER";
                 let color = rain > 25 ? "text-red-400" : "text-green-500";
-                return `<div class="p-3 bg-gray-50 rounded border-l-4 border-purple-400 flex justify-between items-center">
-                    <span class="font-bold text-gray-400">${hour}:00</span>
-                    <span class="font-bold ${color}">%${rain} YAĞIŞ</span>
-                    <span class="text-[10px] font-bold uppercase text-gray-600">${advice}</span>
-                </div>`;
+                return `<div class="p-3 bg-gray-50 rounded border-l-4 border-purple-400 flex justify-between items-center"><span class="font-bold text-gray-400">${hour}:00</span><span class="font-bold ${color}">%${rain} YAĞIŞ</span><span class="text-[10px] font-bold uppercase text-gray-600">${advice}</span></div>`;
             }).join('');
         };
 
@@ -476,7 +451,6 @@
         const updateTrPrice = () => { const total = Array.from(document.querySelectorAll('.srv-checkbox:checked')).reduce((s,v) => s + toFloat(v.dataset.price), 0); document.getElementById('tr-price-display').innerText = `₺${total.toLocaleString()}`; };
         const updateModels = (b) => { const container = document.getElementById('model-container'); if(b === "DIGER") container.innerHTML = '<input type="text" id="tr-model" placeholder="MODEL YAZIN">'; else container.innerHTML = `<select id="tr-model">${(VEHICLES[b] || []).map(m => `<option value="${m}">${m}</option>`).join('')}</select>`; };
         const searchCRM = (plate) => { const p = normalize(plate); if(p.length < 3) return; const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); if(history.length > 0) { document.getElementById('tr-name').value = history[0].name; document.getElementById('tr-phone').value = history[0].phone; document.getElementById('crm-history').innerHTML = history.slice(0,2).map(h => `<div class="p-2 bg-gray-50 rounded mb-1 border-l-4 border-purple-400 text-[9px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); } };
-        const renderReports = () => { const date = new Date(document.getElementById('report-date').value); const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date)); const exs = Object.values(localData.expenses || {}).filter(e => isSameDay(new Date(e.date), date)); const rev = trs.reduce((s,t) => s + toFloat(t.price), 0); const ex = exs.reduce((s,e) => s + toFloat(e.amount), 0); document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`; document.getElementById('rep-total-net').innerText = `₺${(rev-ex).toLocaleString()}`; document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold">${t.plate}</td><td class="p-4 text-right">₺${t.price.toLocaleString()}</td></tr>`).join(''); };
 
         document.addEventListener('input', e => {
             if(e.target.classList.contains('currency-mask')) e.target.value = new Intl.NumberFormat('tr-TR').format(e.target.value.replace(/\D/g, ""));
