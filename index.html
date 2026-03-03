@@ -3,81 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MarioWash Pro - v29 Ultimate</title>
+    <title>MarioWash Pro - v30 Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Kaydırma Sorunu Çözümü */
-        html, body { 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; /* Dış çerçeve sabit kalsın */
-            background-color: #f2edf3;
-            font-family: 'Ubuntu', sans-serif;
-            color: #3e4b5b;
-        }
-
-        .sidebar { 
-            background: #ffffff; 
-            width: 260px; 
-            height: 100vh; 
-            box-shadow: 0 0 15px rgba(0,0,0,0.05); 
-            z-index: 100; 
-            transition: 0.3s; 
-            flex-shrink: 0;
-        }
-
-        @media (max-width: 1024px) { 
-            .sidebar { position: fixed; transform: translateX(-100%); } 
-            .sidebar.open { transform: translateX(0); } 
-        }
-
-        /* İçerik Kaydırma Alanı */
-        #main-content {
-            flex: 1;
-            overflow-y: auto; /* Kaydırmayı bu alanda açıyoruz */
-            -webkit-overflow-scrolling: touch; /* iOS için yağ gibi kaydırma */
-            padding-bottom: 80px; /* Alt boşluk */
-        }
-
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #f2edf3; font-family: 'Ubuntu', sans-serif; color: #3e4b5b; }
+        .sidebar { background: #ffffff; width: 260px; height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); z-index: 100; transition: 0.3s; flex-shrink: 0; }
+        @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
+        #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 100px; }
         .nav-link { color: #3e4b5b; padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-link:hover, .nav-active { color: #b66dff; background: #fbfaff; font-weight: 700; border-left: 4px solid #b66dff; }
-        
         .card-orange { background: linear-gradient(to right, #ffbf96, #fe7096); color: white; }
         .card-blue { background: linear-gradient(to right, #90caf9, #047edf); color: white; }
         .card-green { background: linear-gradient(to right, #84d9d2, #07cdae); color: white; }
         .card-shadow { box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 8px; }
-        
         input, select, textarea { border: 1px solid #ebedf2 !important; border-radius: 6px !important; padding: 10px !important; width: 100%; outline: none; text-transform: uppercase; font-size: 0.85rem; }
         .btn-purple { background: linear-gradient(to right, #da8cff, #9a55ff); color: white; font-weight: 700; padding: 12px; border-radius: 6px; cursor: pointer; border: none; width: 100%; }
-        
         .admin-only { display: none; } .is-admin .admin-only { display: flex; }
         .srv-checkbox { display: none; }
         .srv-label { display: block; padding: 8px; border: 1px solid #ebedf2; border-radius: 6px; cursor: pointer; font-size: 10px; font-weight: bold; text-align: center; text-transform: uppercase; height: 100%; display: flex; align-items: center; justify-content: center; }
         .srv-checkbox:checked + .srv-label { background: #b66dff; color: white; border-color: #b66dff; }
-        
-        #toast { position: fixed; top: 20px; right: 20px; z-index: 9999; transform: translateX(150%); transition: 0.4s; }
-        #toast.show { transform: translateX(0); }
         #sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; display: none; }
         #sidebar-overlay.show { display: block; }
-
-        /* Mobilde Kartların Yan Yana Taşmaması İçin */
-        @media (max-width: 640px) {
-            .stats-grid { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scrollbar-width: none; }
-            .stats-grid::-webkit-scrollbar { display: none; }
-            .stats-grid > div { min-width: 140px; flex-shrink: 0; }
-        }
+        /* Müşteri Detay Modalı */
+        #customer-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+        #customer-modal.show { display: flex; }
     </style>
 </head>
 <body class="flex">
 
-    <div id="toast" class="bg-white border-l-4 border-purple-500 shadow-2xl p-4 flex items-center gap-3 rounded">
-        <i data-lucide="zap" class="text-purple-500"></i>
-        <span class="text-xs font-bold uppercase">Bulut Eşitlendi</span>
+    <!-- Müşteri Detay Modalı -->
+    <div id="customer-modal" onclick="closeCustomerModal()">
+        <div class="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" onclick="event.stopPropagation()">
+            <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+                <div>
+                    <h2 id="modal-customer-plate" class="text-2xl font-bold text-[#b66dff]">PLAKA</h2>
+                    <p id="modal-customer-info" class="text-xs text-gray-400 font-bold uppercase"></p>
+                </div>
+                <button onclick="closeCustomerModal()" class="text-gray-400 hover:text-red-500"><i data-lucide="x"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6">
+                <table class="w-full text-left text-sm">
+                    <thead class="text-[10px] text-gray-400 uppercase border-b">
+                        <tr><th class="pb-2">Tarih</th><th class="pb-2">İşlem</th><th class="pb-2 text-right">Tutar</th></tr>
+                    </thead>
+                    <tbody id="modal-history-body" class="divide-y divide-gray-50"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -97,17 +73,13 @@
         </nav>
     </aside>
 
-    <main id="app-shell" class="hidden flex-1 flex flex-col h-screen">
+    <main id="app-shell" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
         <header class="h-16 bg-white flex items-center justify-between px-4 lg:px-8 shadow-sm shrink-0">
             <div class="flex items-center gap-4">
                 <button onclick="toggleSidebar()" class="lg:hidden p-2 text-[#b66dff]"><i data-lucide="menu"></i></button>
                 <div class="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-3">
                     <span id="live-clock">00:00</span>
-                    <span class="hidden md:block text-gray-200">|</span>
-                    <div class="flex items-center gap-2 text-[#b66dff]">
-                        <span id="weather-icon"></span>
-                        <span id="weather-info" class="hidden sm:inline">YÜKLENİYOR...</span>
-                    </div>
+                    <span class="text-[#b66dff]" id="header-weather">YÜKLENİYOR...</span>
                 </div>
             </div>
             <div class="flex items-center gap-6">
@@ -115,12 +87,12 @@
             </div>
         </header>
 
-        <!-- Kaydırılabilir Ana Alan -->
         <div id="main-content">
-            <div class="p-4 lg:p-6">
+            <div class="p-4 lg:p-6 max-w-6xl mx-auto">
                 
+                <!-- DASHBOARD (PANEL) -->
                 <section id="panel-section">
-                    <div class="admin-only stats-grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="admin-only grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                         <div class="card-orange p-4 card-shadow">
                             <p class="text-[8px] font-bold opacity-80 uppercase tracking-widest">Net Kâr</p>
                             <h3 id="stat-net-profit" class="text-xl font-bold">₺0</h3>
@@ -137,22 +109,46 @@
                         </div>
                     </div>
 
-                    <div class="bg-white p-4 card-shadow mb-6 border-l-4 border-[#b66dff] flex items-center gap-4">
-                        <div class="bg-purple-100 p-2 rounded-full text-[#b66dff] shrink-0"><i data-lucide="terminal" class="w-4 h-4"></i></div>
-                        <p id="ai-advice-text" class="text-[11px] text-gray-700 font-bold uppercase leading-tight">ANALİZ EDİLİYOR...</p>
+                    <!-- AI SAATLİK PLAN ALANI -->
+                    <div class="bg-white p-5 card-shadow mb-6 border-l-4 border-[#b66dff]">
+                        <div class="flex items-center gap-2 mb-3 text-[#b66dff]">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <h3 class="text-[10px] font-bold uppercase tracking-tighter">AI Stratejik Saatlik Plan</h3>
+                        </div>
+                        <div id="ai-hourly-list" class="space-y-2 text-[11px] font-medium text-gray-600">
+                            YAPAY ZEKA VERİLERİ ANALİZ EDİYOR...
+                        </div>
                     </div>
 
                     <div class="bg-white card-shadow overflow-x-auto">
-                        <div class="p-4 border-b flex justify-between items-center min-w-[600px]"><h3 class="font-bold text-xs uppercase text-gray-400">Son İşlemler</h3><input type="text" id="search-tx" class="!w-48 !p-2 text-xs" placeholder="PLAKA ARA..." oninput="renderTransactions()"></div>
+                        <div class="p-4 border-b flex justify-between items-center min-w-[600px]">
+                            <h3 class="font-bold text-xs uppercase text-gray-400">Son İşlemler</h3>
+                            <input type="text" id="search-tx" class="!w-48 !p-2 text-xs" placeholder="PLAKA ARA..." oninput="renderTransactions()">
+                        </div>
                         <table class="w-full text-left text-sm min-w-[600px]">
                             <thead class="bg-gray-50 text-gray-400 text-[10px] uppercase">
-                                <tr><th class="p-4">Saat</th><th class="p-4">Plaka</th><th class="p-4">Araç</th><th class="p-4">Hizmetler</th><th class="p-4 text-right">Tutar</th><th class="p-4 text-center">İşlem</th></tr>
+                                <tr><th class="p-4">Saat</th><th class="p-4">Plaka</th><th class="p-4">Araç</th><th class="p-4">Hizmet</th><th class="p-4 text-right">Tutar</th><th class="p-4 text-center">İşlem</th></tr>
                             </thead>
                             <tbody id="table-transactions"></tbody>
                         </table>
                     </div>
                 </section>
 
+                <!-- MÜŞTERİLER -->
+                <section id="musteriler-section" class="hidden">
+                    <div class="bg-white card-shadow overflow-x-auto">
+                        <div class="p-4 border-b flex justify-between items-center min-w-[600px]">
+                            <h3 class="font-bold text-xs uppercase text-gray-400">Müşteri Veritabanı</h3>
+                            <input type="text" id="search-cust" class="!w-64 !p-2" placeholder="PLAKA VEYA İSİM ARA..." oninput="renderCustomers()">
+                        </div>
+                        <table class="w-full text-left text-sm min-w-[600px]">
+                            <thead class="bg-gray-50 text-[10px] uppercase text-gray-400"><tr><th class="p-4">Plaka</th><th class="p-4">Müşteri</th><th class="p-4">Araç</th><th class="p-4">Telefon</th><th class="p-4 text-center">Geçmiş</th></tr></thead>
+                            <tbody id="table-customers"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- DİĞER BÖLÜMLER (Aynı Mantıkla Devam) -->
                 <section id="islemler-section" class="hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-2 bg-white p-6 card-shadow">
@@ -176,8 +172,34 @@
                             </form>
                         </div>
                         <div class="bg-white p-5 card-shadow h-fit">
-                            <h3 class="font-bold text-xs uppercase text-gray-400 mb-4">Müşteri Geçmişi</h3>
+                            <h3 class="font-bold text-xs uppercase text-gray-400 mb-4">Hızlı CRM</h3>
                             <div id="crm-history" class="space-y-3 text-xs text-gray-400 italic">...</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="raporlar-section" class="hidden">
+                    <div class="bg-white p-5 card-shadow mb-6 flex flex-wrap items-center justify-between gap-4">
+                        <input type="date" id="report-date" class="!w-40 !p-2" onchange="renderReports()">
+                        <div class="flex gap-6">
+                            <div class="text-center"><p id="rep-total-rev" class="text-lg font-bold text-blue-500">₺0</p></div>
+                            <div class="text-center"><p id="rep-total-net" class="text-lg font-bold text-green-500">₺0</p></div>
+                        </div>
+                    </div>
+                    <div class="bg-white card-shadow overflow-x-auto">
+                        <table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-reports"></tbody></table>
+                    </div>
+                </section>
+
+                <section id="giderler-section" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 card-shadow h-fit">
+                            <form id="form-expense" class="space-y-4">
+                                <input type="hidden" id="ex-id"><input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required><textarea id="ex-desc" placeholder="Açıklama..."></textarea><button type="submit" id="btn-ex-save" class="btn-purple uppercase text-xs">Kaydet</button>
+                            </form>
+                        </div>
+                        <div class="md:col-span-2 bg-white card-shadow overflow-x-auto">
+                            <table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-expenses"></tbody></table>
                         </div>
                     </div>
                 </section>
@@ -185,7 +207,7 @@
                 <section id="ayarlar-section" class="hidden">
                     <div class="flex flex-col gap-6 max-w-4xl mx-auto">
                         <div class="bg-white p-6 card-shadow">
-                            <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Hizmet Paketleri Tanımla</h3>
+                            <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Hizmet Paketleri</h3>
                             <form id="form-service" class="flex flex-col md:flex-row gap-2 mb-6">
                                 <input type="hidden" id="srv-id">
                                 <input type="text" id="srv-name" placeholder="Paket Adı" required>
@@ -203,46 +225,11 @@
                         </div>
                     </div>
                 </section>
-
-                <!-- Diğer Bölümler -->
-                <section id="raporlar-section" class="hidden">
-                    <div class="bg-white p-5 card-shadow mb-6 flex flex-wrap items-center justify-between gap-4">
-                        <input type="date" id="report-date" class="!w-40 !p-2" onchange="renderReports()">
-                        <div class="flex gap-6">
-                            <div class="text-center"><p id="rep-total-rev" class="text-lg font-bold text-blue-500">₺0</p></div>
-                            <div class="text-center"><p id="rep-total-net" class="text-lg font-bold text-green-500">₺0</p></div>
-                        </div>
-                    </div>
-                    <div class="bg-white card-shadow overflow-x-auto">
-                        <table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-reports"></tbody></table>
-                    </div>
-                </section>
-
-                <section id="musteriler-section" class="hidden">
-                    <div class="bg-white card-shadow overflow-x-auto">
-                        <div class="p-4 border-b flex justify-between items-center min-w-[600px]"><input type="text" id="search-cust" class="!w-64 !p-2" placeholder="ARA..." oninput="renderCustomers()"></div>
-                        <table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-customers"></tbody></table>
-                    </div>
-                </section>
-
-                <section id="giderler-section" class="hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 card-shadow h-fit">
-                            <form id="form-expense" class="space-y-4">
-                                <input type="hidden" id="ex-id"><input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required><textarea id="ex-desc" placeholder="Açıklama..."></textarea><button type="submit" id="btn-ex-save" class="btn-purple uppercase text-xs">Kaydet</button>
-                            </form>
-                        </div>
-                        <div class="md:col-span-2 bg-white card-shadow overflow-x-auto">
-                            <table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-expenses"></tbody></table>
-                        </div>
-                    </div>
-                </section>
-
             </div>
         </div>
     </main>
 
-    <div id="login-screen" class="fixed inset-0 z-[200] bg-[#f2edf3] flex items-center justify-center">
+    <div id="login-screen" class="fixed inset-0 z-[400] bg-[#f2edf3] flex items-center justify-center">
         <div class="bg-white p-10 rounded-xl shadow-2xl w-80 text-center border-t-4 border-[#b66dff]">
             <h2 class="text-3xl font-bold text-[#b66dff] mb-8 italic flex items-center justify-center gap-2"><i data-lucide="droplets"></i> MarioWash</h2>
             <input type="password" id="login-pass" class="text-center text-2xl mb-6 tracking-widest" placeholder="****">
@@ -272,7 +259,7 @@
         const toggleSidebar = () => {
             const sidebar = document.getElementById('app-sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            sidebar.classList.toggle('hidden'); // lg altı için
+            sidebar.classList.toggle('hidden');
             sidebar.classList.toggle('open');
             overlay.classList.toggle('show');
         };
@@ -283,10 +270,7 @@
             return val.toString().replace(/[çğıöşüÇĞİÖŞÜ]/g, m => map[m]).toUpperCase();
         };
 
-        const toFloat = (s) => {
-            if (typeof s === 'number') return s;
-            return parseFloat(s?.toString().replace(/\./g, "").replace(",", ".")) || 0;
-        };
+        const toFloat = (s) => (typeof s === 'number') ? s : parseFloat(s?.toString().replace(/\./g, "").replace(",", ".")) || 0;
 
         const handleLogin = () => {
             const pass = document.getElementById('login-pass').value;
@@ -303,7 +287,7 @@
         const initApp = () => {
             document.getElementById('tr-brand').innerHTML = '<option value="">MARKA SEÇİN</option>' + Object.keys(VEHICLES).map(b => `<option value="${b}">${b}</option>`).join('');
             document.getElementById('report-date').valueAsDate = new Date();
-            db.ref().on('value', snap => { localData = snap.val() || {}; refresh(); showToast(); });
+            db.ref().on('value', snap => { localData = snap.val() || {}; refresh(); });
             getWeather(); startClock(); showSection('panel');
         };
 
@@ -343,11 +327,80 @@
                     <td class="p-4"><span class="bg-purple-100 text-[#b66dff] text-[10px] px-2 py-1 rounded font-bold uppercase">${t.serviceName}</span></td>
                     <td class="p-4 text-right font-bold">₺${toFloat(t.price).toLocaleString()}</td>
                     <td class="p-4 text-center">
-                        <button onclick="editTr('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
                         <button onclick="deleteItem('transactions', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
                 </tr>
             `).join('');
+        };
+
+        const renderCustomers = () => {
+            const trs = Object.values(localData.transactions || {});
+            const search = normalize(document.getElementById('search-cust').value);
+            const clients = {};
+            trs.forEach(t => { if(!clients[t.plate]) clients[t.plate] = t; });
+            const filtered = Object.values(clients).filter(c => c.plate.includes(search) || normalize(c.name).includes(search));
+            document.getElementById('table-customers').innerHTML = filtered.map(c => `
+                <tr class="border-b border-gray-50">
+                    <td class="p-4 font-bold text-[#b66dff]">${c.plate}</td>
+                    <td class="p-4 font-bold uppercase text-gray-700">${c.name || '-'}</td>
+                    <td class="p-4 text-[11px] font-bold text-gray-400">${c.brand} ${c.model}</td>
+                    <td class="p-4 text-gray-500">${c.phone || '-'}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="openCustomerModal('${c.plate}')" class="text-blue-400"><i data-lucide="history" class="w-5 h-5"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        };
+
+        // Müşteri Detay İşlemleri
+        const openCustomerModal = (plate) => {
+            const history = Object.values(localData.transactions || {}).filter(t => t.plate === plate).reverse();
+            if(history.length === 0) return;
+            const c = history[0];
+            document.getElementById('modal-customer-plate').innerText = c.plate;
+            document.getElementById('modal-customer-info').innerText = `${c.name || 'İSİMSİZ'} | ${c.brand} ${c.model}`;
+            document.getElementById('modal-history-body').innerHTML = history.map(h => `
+                <tr class="border-b border-gray-50">
+                    <td class="py-3 text-[10px] font-bold text-gray-400">${new Date(h.date).toLocaleDateString()}</td>
+                    <td class="py-3 text-xs font-bold text-gray-600 uppercase">${h.serviceName}</td>
+                    <td class="py-3 text-right font-bold text-[#b66dff]">₺${toFloat(h.price).toLocaleString()}</td>
+                </tr>
+            `).join('');
+            document.getElementById('customer-modal').classList.add('show');
+            lucide.createIcons();
+        };
+        const closeCustomerModal = () => document.getElementById('customer-modal').classList.remove('show');
+
+        // AI Saatlik Tahmin
+        const getWeather = async () => {
+            try {
+                const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.0&longitude=29.0&current_weather=true&hourly=precipitation_probability");
+                const data = await res.json();
+                const hourlyRain = data.hourly.precipitation_probability.slice(0, 8);
+                document.getElementById('header-weather').innerText = `${data.current_weather.temperature}°C | %${hourlyRain[0]} YAĞIŞ`;
+                getAIHourlyAdvice(hourlyRain);
+            } catch (e) { document.getElementById('ai-hourly-list').innerText = "HAVA DURUMU ALINAMADI."; }
+        };
+
+        const getAIHourlyAdvice = (rainData) => {
+            const MODEL = "gemini-1.5-flash";
+            const prompt = `Hava durumu yağış olasılıkları (önümüzdeki 8 saat): ${rainData.join(", ")}. 
+            Bir oto yıkama dükkanı için profesyonel, saatlik bir operasyon stratejisi hazırla. 
+            Her saat için kısa bir tavsiye ver. Örn: "14:00 - Yağış %10: Hızlı dış yıkama al." 
+            Yanıtın sadece liste olsun, maksimum 6 satır. HEPSİ BÜYÜK HARF OLSUN.`;
+
+            fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const text = data.candidates[0].content.parts[0].text;
+                document.getElementById('ai-hourly-list').innerHTML = text.split('\n').map(line => `<div>• ${line.trim()}</div>`).join('');
+            })
+            .catch(() => {
+                document.getElementById('ai-hourly-list').innerText = "STRATEJİ OLUŞTURULAMADI. GÜNLÜK PLANA DEVAM EDİN.";
+            });
         };
 
         const renderReports = () => {
@@ -365,25 +418,7 @@
                     <td class="p-4 text-[10px] text-gray-400">${new Date(t.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
                     <td class="p-4 font-bold text-[#b66dff]">${t.plate}</td>
                     <td class="p-4 text-[11px] font-bold text-gray-600">${t.brand} ${t.model}</td>
-                    <td class="p-4 text-[10px] uppercase font-bold text-gray-400">${t.serviceName}</td>
                     <td class="p-4 text-right font-bold">₺${toFloat(t.price).toLocaleString()}</td>
-                </tr>
-            `).join('');
-        };
-
-        const renderCustomers = () => {
-            const trs = Object.values(localData.transactions || {});
-            const search = normalize(document.getElementById('search-cust').value);
-            const clients = {};
-            trs.forEach(t => { if(!clients[t.plate]) clients[t.plate] = t; });
-            const filtered = Object.values(clients).filter(c => c.plate.includes(search) || normalize(c.name).includes(search));
-            document.getElementById('table-customers').innerHTML = filtered.map(c => `
-                <tr class="border-b border-gray-50">
-                    <td class="p-4 font-bold text-[#b66dff]">${c.plate}</td>
-                    <td class="p-4 font-bold uppercase text-gray-700">${c.name || '-'}</td>
-                    <td class="p-4 text-[11px] font-bold text-gray-400">${c.brand} ${c.model}</td>
-                    <td class="p-4 text-gray-500">${c.phone || '-'}</td>
-                    <td class="p-4 text-center"><button onclick="loadClient('${c.plate}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-5 h-5"></i></button></td>
                 </tr>
             `).join('');
         };
@@ -395,10 +430,7 @@
                     <td class="p-4 text-[10px] text-gray-400 font-bold">${new Date(e.date).toLocaleDateString()}</td>
                     <td class="p-4 uppercase font-bold text-gray-600">${e.desc}</td>
                     <td class="p-4 text-right font-bold text-red-400">₺${toFloat(e.amount).toLocaleString()}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="editEx('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </td>
+                    <td class="p-4 text-center"><button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
                 </tr>
             `).join('');
         };
@@ -406,16 +438,10 @@
         const renderServices = () => {
             const srvs = Object.entries(localData.services || {});
             document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `
-                <div>
-                    <input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()">
-                    <label for="srv-${id}" class="srv-label">${s.name}</label>
-                </div>
+                <div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>
             `).join('');
             document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
-                <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase">
-                    <span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span>
-                    <div class="flex gap-3"><button onclick="editService('${id}')" class="text-blue-400"><i data-lucide="edit-3" class="w-4 h-4"></i></button><button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
-                </div>
+                <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase"><span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span><button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
             `).join('');
         };
 
@@ -426,25 +452,18 @@
             document.getElementById('nav-' + id).classList.add('nav-active');
             const sidebar = document.getElementById('app-sidebar');
             if(sidebar.classList.contains('open')) toggleSidebar();
-            document.getElementById('main-content').scrollTop = 0; // Sayfa değişince yukarı çık
+            document.getElementById('main-content').scrollTop = 0;
             refresh();
         };
 
-        document.getElementById('form-transaction').onsubmit = e => { e.preventDefault(); const selectedSrvs = Array.from(document.querySelectorAll('.srv-checkbox:checked')); if(selectedSrvs.length === 0) { alert("Paket seçin!"); return; } const data = { plate: normalize(document.getElementById('tr-plate').value), name: normalize(document.getElementById('tr-name').value), phone: document.getElementById('tr-phone').value, brand: document.getElementById('tr-brand').value, model: normalize(document.getElementById('tr-model').value), serviceName: selectedSrvs.map(s => s.dataset.name).join(", "), price: selectedSrvs.reduce((sum, s) => sum + parseFloat(s.dataset.price), 0), date: new Date().toISOString() }; const id = document.getElementById('tr-id').value; if(id) db.ref('transactions/' + id).set(data); else db.ref('transactions').push(data); e.target.reset(); document.getElementById('tr-id').value = ""; document.getElementById('tr-price-display').innerText = "₺0"; showSection('panel'); };
-        document.getElementById('form-expense').onsubmit = e => { e.preventDefault(); const data = { amount: toFloat(document.getElementById('ex-amount').value), desc: normalize(document.getElementById('ex-desc').value), date: new Date().toISOString() }; const id = document.getElementById('ex-id').value; if(id) db.ref('expenses/' + id).set(data); else db.ref('expenses').push(data); e.target.reset(); document.getElementById('ex-id').value = ""; document.getElementById('btn-ex-save').innerText = "KAYDET"; };
-        document.getElementById('form-service').onsubmit = e => { e.preventDefault(); const id = document.getElementById('srv-id').value; const data = { name: normalize(document.getElementById('srv-name').value), price: toFloat(document.getElementById('srv-price').value) }; if(id) db.ref('services/' + id).set(data); else db.ref('services').push(data); e.target.reset(); document.getElementById('srv-id').value = ""; document.getElementById('btn-srv-save').innerText = "Kaydet"; };
+        document.getElementById('form-transaction').onsubmit = e => { e.preventDefault(); const selectedSrvs = Array.from(document.querySelectorAll('.srv-checkbox:checked')); if(selectedSrvs.length === 0) { alert("Paket seçin!"); return; } const data = { plate: normalize(document.getElementById('tr-plate').value), name: normalize(document.getElementById('tr-name').value), phone: document.getElementById('tr-phone').value, brand: document.getElementById('tr-brand').value, model: normalize(document.getElementById('tr-model').value), serviceName: selectedSrvs.map(s => s.dataset.name).join(", "), price: selectedSrvs.reduce((sum, s) => sum + parseFloat(s.dataset.price), 0), date: new Date().toISOString() }; db.ref('transactions').push(data); e.target.reset(); document.getElementById('tr-price-display').innerText = "₺0"; showSection('panel'); };
+        document.getElementById('form-expense').onsubmit = e => { e.preventDefault(); const data = { amount: toFloat(document.getElementById('ex-amount').value), desc: normalize(document.getElementById('ex-desc').value), date: new Date().toISOString() }; db.ref('expenses').push(data); e.target.reset(); };
+        document.getElementById('form-service').onsubmit = e => { e.preventDefault(); const data = { name: normalize(document.getElementById('srv-name').value), price: toFloat(document.getElementById('srv-price').value) }; db.ref('services').push(data); e.target.reset(); };
         const saveSets = () => db.ref('settings').set({ goal: document.getElementById('set-goal').value, fixed: document.getElementById('set-fixed').value });
         const deleteItem = (path, id) => { if(confirm("Silmek istediğine emin misin?")) db.ref(`${path}/${id}`).remove(); };
-        const editTr = (id) => { const t = localData.transactions[id]; showSection('islemler'); document.getElementById('tr-id').value = id; document.getElementById('tr-plate').value = t.plate; document.getElementById('tr-name').value = t.name; document.getElementById('tr-phone').value = t.phone; document.getElementById('tr-brand').value = t.brand; updateModels(t.brand); setTimeout(() => { document.getElementById('tr-model').value = t.model; document.querySelectorAll('.srv-checkbox').forEach(cb => cb.checked = t.serviceName.includes(cb.dataset.name)); updateTrPrice(); }, 100); };
-        const editEx = (id) => { const e = localData.expenses[id]; document.getElementById('ex-id').value = id; document.getElementById('ex-amount').value = toFloat(e.amount).toLocaleString(); document.getElementById('ex-desc').value = e.desc; document.getElementById('btn-ex-save').innerText = "GÜNCELLE"; };
-        const editService = (id) => { const s = localData.services[id]; document.getElementById('srv-id').value = id; document.getElementById('srv-name').value = s.name; document.getElementById('srv-price').value = toFloat(s.price).toLocaleString(); document.getElementById('btn-srv-save').innerText = "✓"; };
-        const loadClient = (plate) => { const c = Object.values(localData.transactions).reverse().find(t => t.plate === plate); showSection('islemler'); document.getElementById('tr-plate').value = c.plate; document.getElementById('tr-name').value = c.name; document.getElementById('tr-phone').value = c.phone; document.getElementById('tr-brand').value = c.brand; updateModels(c.brand); };
         const updateModels = (b) => { const container = document.getElementById('model-container'); if(b === "DIGER") container.innerHTML = '<input type="text" id="tr-model" placeholder="MODEL YAZIN">'; else container.innerHTML = `<select id="tr-model">${(VEHICLES[b] || []).map(m => `<option value="${m}">${m}</option>`).join('')}</select>`; };
-        const searchCRM = (plate) => { const p = normalize(plate); if(p.length < 3) return; const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); if(history.length > 0) { document.getElementById('tr-name').value = history[0].name; document.getElementById('tr-phone').value = history[0].phone; document.getElementById('crm-history').innerHTML = history.slice(0,3).map(h => `<div class="p-3 bg-gray-50 rounded mb-2 border-l-4 border-purple-400 text-[10px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); } };
-        const getWeather = async () => { try { const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.0&longitude=29.0&current_weather=true&hourly=precipitation_probability"); const data = await res.json(); const hourlyRain = data.hourly.precipitation_probability.slice(0, 6); document.getElementById('weather-info').innerText = `${data.current_weather.temperature}°C | YAĞIŞ: %${hourlyRain[0]}`; document.getElementById('weather-icon').innerHTML = `<i data-lucide="${hourlyRain[0]>25?'cloud-rain':'sun'}" class="w-4 h-4"></i>`; getAIAdvice(hourlyRain[0]); } catch (e) { } };
-        const getAIAdvice = (currentRain) => { const aiAdviceElement = document.getElementById('ai-advice-text'); if (currentRain > 25) aiAdviceElement.innerText = "YAĞIŞ RİSKİ: İÇ DETAY VE KOLTUK YIKAMAYA ODAKLANIN."; else aiAdviceElement.innerText = "HAVA GÜZEL: HIZLI DIŞ YIKAMA VE CİLA İLE KAPASİTEYİ ARTIRIN."; lucide.createIcons(); };
+        const searchCRM = (plate) => { const p = normalize(plate); if(p.length < 3) return; const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); if(history.length > 0) { document.getElementById('tr-name').value = history[0].name; document.getElementById('tr-phone').value = history[0].phone; document.getElementById('crm-history').innerHTML = history.slice(0,2).map(h => `<div class="p-2 bg-gray-50 rounded mb-1 border-l-4 border-purple-400 text-[9px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); } };
         const startClock = () => setInterval(() => document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}), 1000);
-        const showToast = () => { document.getElementById('toast').classList.add('show'); setTimeout(() => document.getElementById('toast').classList.remove('show'), 2000); };
         const updateTrPrice = () => { const total = Array.from(document.querySelectorAll('.srv-checkbox:checked')).reduce((sum, cb) => sum + parseFloat(cb.dataset.price), 0); document.getElementById('tr-price-display').innerText = `₺${total.toLocaleString()}`; };
         document.addEventListener('input', e => { if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { if(e.target.classList.contains('currency-mask')) e.target.value = new Intl.NumberFormat('tr-TR').format(e.target.value.replace(/\D/g, "")); else { const start = e.target.selectionStart; e.target.value = normalize(e.target.value); e.target.setSelectionRange(start, start); } } });
     </script>
