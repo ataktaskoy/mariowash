@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MarioWash Pro - v35 Final</title>
+    <title>MarioWash - Yönetim Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -142,7 +142,16 @@
             <section id="raporlar-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="bg-white p-5 card-shadow mb-6 flex justify-between items-center">
                     <input type="date" id="report-date" class="!w-40" onchange="renderReports()">
-                    <div class="flex gap-6"><p id="rep-total-rev" class="font-bold text-blue-500 text-xl">₺0</p><p id="rep-total-net" class="font-bold text-green-500 text-xl">₺0</p></div>
+                    <div class="flex gap-8">
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase">CİRO</p>
+                            <p id="rep-total-rev" class="font-bold text-blue-500 text-xl">₺0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase">GÜNLÜK NET KÂR</p>
+                            <p id="rep-total-net" class="font-bold text-green-500 text-xl">₺0</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="bg-white card-shadow overflow-x-auto"><table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-reports"></tbody></table></div>
             </section>
@@ -150,7 +159,12 @@
             <section id="giderler-section" class="p-4 lg:p-6 max-w-6xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 card-shadow h-fit">
-                        <form id="form-expense" class="space-y-4"><input type="hidden" id="ex-id"><input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required><textarea id="ex-desc" placeholder="Açıklama..."></textarea><button type="submit" id="btn-ex-save" class="btn-purple text-xs uppercase">Kaydet</button></form>
+                        <form id="form-expense" class="space-y-4">
+                            <input type="hidden" id="ex-id">
+                            <input type="text" id="ex-amount" class="currency-mask" placeholder="Miktar (₺)" required>
+                            <textarea id="ex-desc" placeholder="Açıklama..."></textarea>
+                            <button type="submit" id="btn-ex-save" class="btn-purple text-xs uppercase">Kaydet</button>
+                        </form>
                     </div>
                     <div class="md:col-span-2 bg-white card-shadow overflow-x-auto"><table class="w-full text-left text-sm min-w-[600px]"><tbody id="table-expenses"></tbody></table></div>
                 </div>
@@ -160,7 +174,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-6 card-shadow">
                         <h3 class="font-bold mb-4 text-xs uppercase text-gray-400">Hizmet Paketleri</h3>
-                        <form id="form-service" class="flex gap-2 mb-6"><input type="hidden" id="srv-id"><input type="text" id="srv-name" placeholder="Paket Adı" required><input type="text" id="srv-price" class="w-32 currency-mask" placeholder="₺" required><button type="submit" id="btn-srv-save" class="bg-[#b66dff] text-white px-6 rounded font-bold uppercase text-xs">Ekle</button></form>
+                        <form id="form-service" class="flex gap-2 mb-6">
+                            <input type="hidden" id="srv-id">
+                            <input type="text" id="srv-name" placeholder="Paket Adı" required>
+                            <input type="text" id="srv-price" class="w-32 currency-mask" placeholder="₺" required>
+                            <button type="submit" id="btn-srv-save" class="bg-[#b66dff] text-white px-6 rounded font-bold uppercase text-xs">Kaydet</button>
+                        </form>
                         <div id="list-services" class="space-y-2"></div>
                     </div>
                     <div class="bg-white p-6 card-shadow">
@@ -282,10 +301,22 @@
                     <td class="p-4 text-[11px] font-bold text-gray-400">${c.brand} ${c.model}</td>
                     <td class="p-4 text-center flex justify-center gap-2">
                         <button onclick="openCustomerModal('${c.plate}')" class="text-purple-400"><i data-lucide="history" class="w-5 h-5"></i></button>
+                        ${currentUser === 'ADMIN' ? `
+                            <button onclick="searchCRM('${c.plate}'); showSection('islemler');" class="text-blue-400"><i data-lucide="edit-3" class="w-5 h-5"></i></button>
+                            <button onclick="deletePlate('${c.plate}')" class="text-red-400"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        ` : ''}
                     </td>
                 </tr>
             `).join('');
             lucide.createIcons();
+        };
+
+        const deletePlate = (plate) => {
+            if(confirm(`${plate} plakalı tüm kayıtlar silinecek. Emin misiniz?`)) {
+                Object.entries(localData.transactions).forEach(([id, t]) => {
+                    if(t.plate === plate) db.ref('transactions/' + id).remove();
+                });
+            }
         };
 
         const renderExpenses = () => {
@@ -295,17 +326,45 @@
                     <td class="p-4 text-[10px] text-gray-400 font-bold">${new Date(e.date).toLocaleDateString()}</td>
                     <td class="p-4 uppercase font-bold text-gray-600">${e.desc}</td>
                     <td class="p-4 text-right font-bold text-red-400">₺${toFloat(e.amount).toLocaleString()}</td>
-                    <td class="p-4 text-center">${currentUser === 'ADMIN' ? `<button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}</td>
+                    <td class="p-4 text-center">
+                        ${currentUser === 'ADMIN' ? `
+                            <button onclick="editEx('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="deleteItem('expenses', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        ` : ''}
+                    </td>
                 </tr>
             `).join('');
             lucide.createIcons();
         };
 
+        const editEx = (id) => {
+            const e = localData.expenses[id];
+            document.getElementById('ex-id').value = id;
+            document.getElementById('ex-amount').value = e.amount.toLocaleString('tr-TR');
+            document.getElementById('ex-desc').value = e.desc;
+            document.getElementById('btn-ex-save').innerText = "GÜNCELLE";
+        };
+
         const renderServices = () => {
             const srvs = Object.entries(localData.services || {});
             document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `<div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>`).join('');
-            document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `<div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase"><span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span><button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join('');
+            document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
+                <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase">
+                    <span>${s.name} - <b>₺${toFloat(s.price).toLocaleString()}</b></span>
+                    <div>
+                        <button onclick="editSrv('${id}')" class="text-blue-400 mr-2"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <button onclick="deleteItem('services', '${id}')" class="text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div>`).join('');
             lucide.createIcons();
+        };
+
+        const editSrv = (id) => {
+            const s = localData.services[id];
+            document.getElementById('srv-id').value = id;
+            document.getElementById('srv-name').value = s.name;
+            document.getElementById('srv-price').value = s.price.toLocaleString('tr-TR');
+            document.getElementById('btn-srv-save').innerText = "GÜNCELLE";
         };
 
         const editTr = (id) => {
@@ -335,14 +394,55 @@
             e.target.reset(); document.getElementById('tr-id').value = ""; document.getElementById('btn-tr-save').innerText = "İŞLEMİ KAYDET"; showSection('panel');
         };
 
-        document.getElementById('form-expense').onsubmit = e => { e.preventDefault(); db.ref('expenses').push({ amount: toFloat(document.getElementById('ex-amount').value), desc: normalize(document.getElementById('ex-desc').value), date: new Date().toISOString() }); e.target.reset(); };
-        document.getElementById('form-service').onsubmit = e => { e.preventDefault(); db.ref('services').push({ name: normalize(document.getElementById('srv-name').value), price: toFloat(document.getElementById('srv-price').value) }); e.target.reset(); };
-        const deleteItem = (path, id) => { if(confirm("Sil?")) db.ref(`${path}/${id}`).remove(); };
+        document.getElementById('form-expense').onsubmit = e => { 
+            e.preventDefault(); 
+            const data = { amount: toFloat(document.getElementById('ex-amount').value), desc: normalize(document.getElementById('ex-desc').value), date: new Date().toISOString() };
+            const id = document.getElementById('ex-id').value;
+            if(id) db.ref('expenses/' + id).set(data); else db.ref('expenses').push(data);
+            e.target.reset(); document.getElementById('ex-id').value = ""; document.getElementById('btn-ex-save').innerText = "KAYDET";
+        };
+
+        document.getElementById('form-service').onsubmit = e => { 
+            e.preventDefault(); 
+            const data = { name: normalize(document.getElementById('srv-name').value), price: toFloat(document.getElementById('srv-price').value) };
+            const id = document.getElementById('srv-id').value;
+            if(id) db.ref('services/' + id).set(data); else db.ref('services').push(data);
+            e.target.reset(); document.getElementById('srv-id').value = ""; document.getElementById('btn-srv-save').innerText = "EKLE";
+        };
+
+        const deleteItem = (path, id) => { if(confirm("Silmek istediğinize emin misiniz?")) db.ref(`${path}/${id}`).remove(); };
         const startClock = () => setInterval(() => document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}), 1000);
         const updateTrPrice = () => { const total = Array.from(document.querySelectorAll('.srv-checkbox:checked')).reduce((s,v) => s + toFloat(v.dataset.price), 0); document.getElementById('tr-price-display').innerText = `₺${total.toLocaleString()}`; };
         const updateModels = (b) => { const container = document.getElementById('model-container'); if(b === "DIGER") container.innerHTML = '<input type="text" id="tr-model" placeholder="MODEL YAZIN">'; else container.innerHTML = `<select id="tr-model">${(VEHICLES[b] || []).map(m => `<option value="${m}">${m}</option>`).join('')}</select>`; };
-        const searchCRM = (plate) => { const p = normalize(plate); if(p.length < 3) return; const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); if(history.length > 0) { document.getElementById('tr-name').value = history[0].name; document.getElementById('tr-phone').value = history[0].phone; document.getElementById('crm-history').innerHTML = history.slice(0,2).map(h => `<div class="p-2 bg-gray-50 rounded mb-1 border-l-4 border-purple-400 text-[9px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); } };
-        const renderReports = () => { const date = new Date(document.getElementById('report-date').value); const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date)); const rev = trs.reduce((s,t) => s + toFloat(t.price), 0); document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`; document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join(''); };
+        
+        const searchCRM = (plate) => { 
+            const p = normalize(plate); 
+            if(p.length < 3) return; 
+            const history = Object.values(localData.transactions || {}).filter(t => t.plate === p).reverse(); 
+            if(history.length > 0) { 
+                const last = history[0];
+                document.getElementById('tr-name').value = last.name; 
+                document.getElementById('tr-phone').value = last.phone; 
+                document.getElementById('tr-brand').value = last.brand;
+                updateModels(last.brand);
+                setTimeout(() => { document.getElementById('tr-model').value = last.model; }, 10);
+                document.getElementById('crm-history').innerHTML = history.slice(0,2).map(h => `<div class="p-2 bg-gray-50 rounded mb-1 border-l-4 border-purple-400 text-[9px]"><b>${new Date(h.date).toLocaleDateString()}</b><br>${h.serviceName}</div>`).join(''); 
+            } 
+        };
+
+        const renderReports = () => { 
+            const dateStr = document.getElementById('report-date').value;
+            if(!dateStr) return;
+            const date = new Date(dateStr); 
+            const trs = Object.values(localData.transactions || {}).filter(t => isSameDay(new Date(t.date), date)); 
+            const exs = Object.values(localData.expenses || {}).filter(e => isSameDay(new Date(e.date), date));
+            const rev = trs.reduce((s,t) => s + toFloat(t.price), 0); 
+            const dayEx = exs.reduce((s,e) => s + toFloat(e.amount), 0);
+            
+            document.getElementById('rep-total-rev').innerText = `₺${rev.toLocaleString()}`; 
+            document.getElementById('rep-total-net').innerText = `₺${(rev - dayEx).toLocaleString()}`; 
+            document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join(''); 
+        };
 
         document.addEventListener('input', e => {
             if(e.target.classList.contains('currency-mask')) e.target.value = new Intl.NumberFormat('tr-TR').format(e.target.value.replace(/\D/g, ""));
