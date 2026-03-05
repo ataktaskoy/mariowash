@@ -469,10 +469,14 @@
             document.getElementById('table-reports').innerHTML = trs.reverse().map(t => `<tr class="border-b"><td class="p-4 text-[10px]">${new Date(t.date).toLocaleTimeString()}</td><td class="p-4 font-bold text-[#b66dff]">${t.plate}</td><td class="p-4 text-right font-bold">₺${t.price.toLocaleString()}</td></tr>`).join(''); 
         };
 
-        document.addEventListener('input', e => {
-            if(e.target.classList.contains('currency-mask')) e.target.value = new Intl.NumberFormat('tr-TR').format(e.target.value.replace(/\D/g, ""));
-            else if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { const start = e.target.selectionStart; e.target.value = normalize(e.target.value); e.target.setSelectionRange(start, start); }
-        });
+document.addEventListener('input', e => {
+    if(e.target.classList.contains('currency-mask')) e.target.value = new Intl.NumberFormat('tr-TR').format(e.target.value.replace(/\D/g, ""));
+    else if((e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') && e.target.id !== 'login-email' && e.target.id !== 'login-pass') { 
+        const start = e.target.selectionStart; 
+        e.target.value = normalize(e.target.value); 
+        e.target.setSelectionRange(start, start); 
+    }
+});
     </script>
 </body>
 </html>
