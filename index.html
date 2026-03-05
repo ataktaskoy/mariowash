@@ -227,7 +227,7 @@
         auth.onAuthStateChanged(user => {
             if (user) {
                 // Admin kontrolü için e-posta doğrulaması (Burayı kendi e-postanla değiştirebilirsin)
-                currentUser = (user.email === "admin@mariowash.com") ? "ADMIN" : "PERSONEL";
+                currentUser = (user.email === "ataktaskoy@gmail.com") ? "ADMIN" : "PERSONEL";
                 
                 if(currentUser === "ADMIN") {
                     document.getElementById('admin-stats').classList.remove('hidden');
