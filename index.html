@@ -9,22 +9,13 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         html, body { height: 100dvh; margin: 0; padding: 0; overflow: hidden; background-color: #f2edf3; font-family: 'Ubuntu', sans-serif; color: #3e4b5b; }
         .sidebar { background: #ffffff; width: 260px; height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); z-index: 100; transition: 0.3s; flex-shrink: 0; }
         @media (max-width: 1024px) { .sidebar { position: fixed; transform: translateX(-100%); left: 0; top: 0; } .sidebar.open { transform: translateX(0); } }
-        
-        /* Mobil Alt Kısım Görünmeme Sorunu İçin Düzenleme */
-        #main-content { 
-            flex: 1; 
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; 
-            background: #f2edf3; 
-            height: calc(100dvh - 64px); 
-            padding-bottom: 100px; /* Telefonun alt barı için boşluk */
-        }
-        
+        #main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f2edf3; height: calc(100dvh - 64px); padding-bottom: 100px; }
         .nav-link { color: #3e4b5b; padding: 1rem 2rem; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.3s; }
         .nav-link:hover, .nav-active { color: #b66dff; background: #fbfaff; font-weight: 700; border-left: 4px solid #b66dff; }
         .card-orange { background: linear-gradient(to right, #ffbf96, #fe7096); color: white; }
@@ -87,7 +78,7 @@
                     <span class="text-[#b66dff]" id="header-weather">YÜKLENİYOR...</span>
                 </div>
             </div>
-            <i data-lucide="log-out" onclick="location.reload()" class="w-5 h-5 text-red-400 cursor-pointer"></i>
+            <i data-lucide="log-out" onclick="firebase.auth().signOut()" class="w-5 h-5 text-red-400 cursor-pointer"></i>
         </header>
 
         <div id="main-content">
@@ -208,7 +199,8 @@
     <div id="login-screen" class="fixed inset-0 z-[400] bg-[#f2edf3] flex items-center justify-center">
         <div class="bg-white p-10 rounded-xl shadow-2xl w-80 text-center border-t-4 border-[#b66dff]">
             <h2 class="text-3xl font-bold text-[#b66dff] mb-8 italic flex items-center justify-center gap-2"><i data-lucide="droplets"></i> MarioWash</h2>
-            <input type="password" id="login-pass" class="text-center text-2xl mb-6 tracking-widest" placeholder="****">
+            <input type="email" id="login-email" class="w-full mb-4 p-3 border rounded text-center text-sm font-bold text-gray-600 outline-none uppercase" placeholder="E-Posta Adresi" required>
+            <input type="password" id="login-pass" class="w-full mb-6 p-3 border rounded text-center text-xl tracking-widest outline-none" placeholder="****" required>
             <button onclick="handleLogin()" class="btn-purple w-full uppercase">Giriş Yap</button>
         </div>
     </div>
@@ -225,23 +217,45 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth(); // Auth tanımlaması
 
         const VEHICLES = { "BMW": ["1 SERISI","2 SERISI","3 SERISI","4 SERISI","5 SERISI","6 SERISI","7 SERISI","8 SERISI","X1","X2","X3","X4","X5","X6","X7","Z4","I3","I4","I5","IX","M SERISI"], "MERCEDES": ["A SERISI","B SERISI","C SERISI","E SERISI","S SERISI","CLA","CLS","CLK","SLK","GLA","GLB","GLC","GLE","GLS","G SERISI","VITO","V SERISI","SPRINTER","CITAN","EQE","EQS"], "AUDI": ["A1","A3","A4","A5","A6","A7","A8","Q2","Q3","Q5","Q7","Q8","TT","E-TRON"], "VOLKSWAGEN": ["POLO","GOLF","JETTA","BORA","PASSAT","ARTEON","SCIROCCO","T-CROSS","T-ROC","TIGUAN","TOUAREG","CADDY","TRANSPORTER","CRAFTER","AMAROK"], "RENAULT": ["R9","R11","R12","TOROS","BROADWAY","CLIO","SYMBOL","MEGANE","FLUENCE","LAGUNA","TALISMAN","TALIANT","CAPTUR","KADJAR","KOLEOS","AUSTRAL","ZOE","KANGOO","MASTER"], "FIAT": ["SAHIN","DOGAN","KARTAL","UNO","PALIO","SIENA","ALBEA","MAREA","LINEA","EGEA","EGEA CROSS","500","PANDA","DOBLO","FIORINO","DUCATO"], "TOYOTA": ["COROLLA","AURIS","YARIS","AVENSIS","C-HR","COROLLA CROSS","RAV4","HILUX"], "FORD": ["TAUNUS","ESCORT","SIERRA","FIESTA","FOCUS","MONDEO","FUSION","PUMA","KUGA","EDGE","COURIER","CONNECT","TRANSIT","RANGER"], "HYUNDAI": ["EXCEL","ACCENT","ACCENT ERA","ACCENT BLUE","ELANTRA","I10","I20","I30","BAYON","KONA","TUCSON","SANTA FE","H100"], "HONDA": ["CIVIC","ACCORD","CITY","JAZZ","HR-V","CR-V"], "OPEL": ["CORSA","ASTRA","VECTRA","INSIGNIA","MOKKA","CROSSLAND","GRANDLAND","COMBO"], "PEUGEOT": ["106","206","207","208","306","307","308","406","407","408","508","2008","3008","5008","PARTNER","RIFTER","BOXER"], "SKODA": ["FELICIA","FABIA","RAPID","SCALA","OCTAVIA","SUPERB","KAMIQ","KAROQ","KODIAQ"], "VOLVO": ["S40","S60","S90","V40","V60","V90","XC40","XC60","XC90"], "DACIA": ["LOGAN","SANDERO","SANDERO STEPWAY","DUSTER","JOGGER"], "TESLA": ["MODEL 3","MODEL Y","MODEL S","MODEL X"], "TOGG": ["T10X","T10F"], "NISSAN": ["MICRA","ALMERA","PRIMERA","JUKE","QASHQAI","X-TRAIL","NAVARA"], "KIA": ["PICANTO","RIO","CERATO","CEED","STONIC","SPORTAGE","SORENTO"], "CITROEN": ["C3","C4","C5 AIRCROSS","BERLINGO","JUMPER"], "CHEVROLET": ["AVEO","CRUZE","LACETTI","CAPTIVA"], "MITSUBISHI": ["COLT","CARISMA","LANCER","ASX","L200"], "MAZDA": ["2","3","6","CX-3","CX-5","CX-60"], "SUZUKI": ["SWIFT","VITARA","SX4","JIMNY"], "SEAT": ["IBIZA","LEON","TOLEDO","ARONA","ATECA"], "ALFA ROMEO": ["GIULIETTA","GIULIA","STELVIO"], "LAND ROVER": ["DEFENDER","DISCOVERY","RANGE ROVER","EVOQUE"], "JEEP": ["RENEGADE","COMPASS","WRANGLER","CHEROKEE"], "MINI": ["ONE","COOPER","COUNTRYMAN"], "DIGER": ["DIGER MODEL"] };
         let localData = { transactions: {}, expenses: {}, services: {}, settings: {} };
         let currentUser = null;
 
-        const handleLogin = () => {
-            const pass = document.getElementById('login-pass').value;
-            if(pass === "1234" || pass === "5555") {
-                currentUser = (pass === "1234") ? "ADMIN" : "PERSONEL";
+        // Firebase Auth Dinleyicisi
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Admin kontrolü için e-posta doğrulaması (Burayı kendi e-postanla değiştirebilirsin)
+                currentUser = (user.email === "admin@mariowash.com") ? "ADMIN" : "PERSONEL";
+                
                 if(currentUser === "ADMIN") {
                     document.getElementById('admin-stats').classList.remove('hidden');
                     document.querySelectorAll('.admin-nav').forEach(el => el.classList.remove('hidden'));
+                } else {
+                    document.getElementById('admin-stats').classList.add('hidden');
+                    document.querySelectorAll('.admin-nav').forEach(el => el.classList.add('hidden'));
                 }
+                
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-shell').classList.remove('hidden');
                 initApp();
-            } else alert("Hatalı!");
+            } else {
+                document.getElementById('app-shell').classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('login-pass').value = '';
+            }
+        });
+
+        // Yeni Giriş Fonksiyonu
+        const handleLogin = () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            
+            if(!email || !pass) return alert("E-Posta ve şifre zorunludur!");
+            
+            auth.signInWithEmailAndPassword(email, pass)
+                .catch(err => alert("Giriş Başarısız: Bilgilerinizi kontrol edin."));
         };
 
         const initApp = () => {
@@ -358,7 +372,6 @@
 
         const renderServices = () => {
             const srvs = Object.entries(localData.services || {});
-            // Checkboxlara hem onchange hem onclick ekleyerek mobil gecikmesini önledik
             document.getElementById('tr-services-list').innerHTML = srvs.map(([id, s]) => `<div><input type="checkbox" id="srv-${id}" class="srv-checkbox" value="${id}" data-price="${s.price}" data-name="${s.name}" onchange="updateTrPrice()" onclick="updateTrPrice()"><label for="srv-${id}" class="srv-label">${s.name}</label></div>`).join('');
             document.getElementById('list-services').innerHTML = srvs.map(([id, s]) => `
                 <div class="flex justify-between p-3 bg-gray-50 rounded border text-xs uppercase">
