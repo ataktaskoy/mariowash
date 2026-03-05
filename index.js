@@ -3,12 +3,13 @@ const qrcode = require('qrcode-terminal');
 const admin = require('firebase-admin');
 const express = require('express');
 
-// Render'ın uykuya dalmaması için basit bir web sunucusu
+// Render için Web Sunucusu (10000 portunu otomatik dinler)
 const app = express();
-const port = process.env.PORT || 3000;
-app.get('/', (req, res) => res.send('Bot Çalışıyor!'));
+const port = process.env.PORT || 10000;
+app.get('/', (req, res) => res.send('MarioWash Botu Aktif!'));
 app.listen(port, () => console.log(`Sunucu ${port} portunda aktif.`));
 
+// Firebase Bağlantısı
 const serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
@@ -17,6 +18,8 @@ admin.initializeApp({
 });
 
 const db = admin.database();
+
+// WhatsApp İstemcisi ve Docker Ayarları
 const client = new Client({ 
     authStrategy: new LocalAuth(),
     puppeteer: { 
@@ -25,19 +28,21 @@ const client = new Client({
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
             '--no-zygote',
-            '--single-process',
-            '--disable-gpu'
+            '--single-process'
         ] 
     } 
 });
 
-client.on('qr', qr => qrcode.generate(qr, {small: true}));
+// QR KODU EKRANA BASMA (Okunabilirlik iyileştirildi)
+client.on('qr', (qr) => {
+    console.log('\n--- LÜTFEN TELEFONUNUZDAN BU KODU OKUTUN ---');
+    qrcode.generate(qr, {small: true});
+    console.log('--- KODUN SÜRESİ DOLARSA SAYFAYI YENİLEYİN ---\n');
+});
 
 client.on('ready', () => {
-    console.log('WhatsApp Bot Hazır ve Dinlemede!');
+    console.log('✅ WhatsApp Bot Başarıyla Bağlandı ve Hazır!');
     const startTime = Date.now(); 
 
     db.ref('transactions').on('child_added', (snapshot) => {
@@ -47,12 +52,13 @@ client.on('ready', () => {
         const entryTime = new Date(data.date).getTime();
         if (entryTime < startTime || !data.waNotify || !data.phone) return;
 
+        // Numara Temizleme
         let cleanPhone = data.phone.replace(/\D/g, ""); 
         if (cleanPhone.startsWith("0")) cleanPhone = cleanPhone.substring(1); 
         if (cleanPhone.length === 10) cleanPhone = "90" + cleanPhone;
         
         const phoneId = cleanPhone + "@c.us";
-        const msg = `Sayın ${data.name},\n${data.plate} plakalı aracınızı *yıkama ve temizlik* işlemlerinde bizi tercih ettiğiniz için teşekkür ederiz.\n\nMemnuniyetiniz bizim için önceliklidir. Aracınızı her zaman aynı özen ve kaliteyle ağırlamaktan memnuniyet duyarız.\n\nTekrar görüşmek dileğiyle.\n*MarioWash*`;
+        const msg = `Sayın ${data.name},\n${data.plate} plakalı aracınızı *yıkama ve temizlik* işlemlerinde bizi tercih ettiğiniz için teşekkür ederiz.\n\nMemnuniyetiniz bizim için önceliklidir.\n\nTekrar görüşmek dileğiyle.\n*MarioWash*`;
 
         setTimeout(() => {
             client.sendMessage(phoneId, msg)
